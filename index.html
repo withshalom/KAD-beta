@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>.KAD Beta — Arc Drafting</title>
+<title>.KAD — Kernel-Aided Design</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@300;400;500;600&display=swap');
 
@@ -458,6 +458,148 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg-void)
 .op-hint b { color: var(--text-secondary); }
 .op-actions { display: flex; gap: 6px; }
 .op-actions .dlg-btn { flex: 1; padding: 6px 8px; font-size: 9px; }
+
+.kad-tools-panel{display:flex;flex-direction:column;flex:1;overflow:hidden;}
+body.kanvas-mode .kad-tools-panel{display:none;}
+
+/* ══════════════════════════════════════════════════════════════════════
+   KANVAS MODE — paperspace overlay for KAD
+   Color identity: teal #00d4c8 / #00a89e
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── KANVAS token overrides ── */
+body.kanvas-mode {
+  --kv:    #00d4c8;
+  --kv2:   #00a89e;
+  --kv-g:  rgba(0,212,200,0.18);
+  --kv-dim:rgba(0,212,200,0.06);
+}
+
+/* ── KANVAS topbar toggle button ── */
+#btn-kanvas {
+  display:flex; align-items:center; gap:6px;
+  height:28px; padding:0 12px;
+  font-family:var(--font-mono); font-size:11px; font-weight:600;
+  border:1px solid rgba(255,255,255,0.1); border-radius:6px;
+  cursor:pointer; transition:all 0.18s; letter-spacing:0.04em;
+  background:rgba(255,255,255,0.04); color:var(--text-secondary);
+}
+#btn-kanvas:hover { color:var(--text-primary); border-color:rgba(255,255,255,0.2); }
+#btn-kanvas .kv-mark {
+  width:18px; height:18px; border-radius:5px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:7px; font-weight:700; color:#000; letter-spacing:0.04em;
+  background:var(--text-dim); transition:all 0.18s;
+}
+body.kanvas-mode #btn-kanvas {
+  background:rgba(0,212,200,0.08); color:#00d4c8;
+  border-color:rgba(0,212,200,0.35);
+  box-shadow:0 0 12px rgba(0,212,200,0.15);
+}
+body.kanvas-mode #btn-kanvas .kv-mark {
+  background:linear-gradient(135deg,#00d4c8,#00a89e);
+  box-shadow:0 0 8px rgba(0,212,200,0.5);
+}
+
+/* ── KANVAS sidebar panel ── */
+#kanvas-panel {
+  display:none; flex-direction:column; flex:1; overflow:hidden;
+}
+body.kanvas-mode #kanvas-panel { display:flex; }
+body.kanvas-mode .kad-tools-panel { display:none; }
+
+/* ── KANVAS tool grid (compact 2-col like VAD) ── */
+.kv-tool-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:4px; padding:8px;
+}
+.kv-tbtn {
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  padding:8px 4px; background:rgba(255,255,255,0.03);
+  border:1px solid transparent; border-radius:6px;
+  cursor:pointer; transition:all 0.13s;
+}
+.kv-tbtn:hover { background:rgba(255,255,255,0.07); border-color:rgba(255,255,255,0.1); }
+.kv-tbtn.act { background:rgba(0,212,200,0.08); border-color:rgba(0,212,200,0.35); }
+.kv-tbtn .kv-ti { width:20px; height:20px; }
+.kv-tbtn .kv-ti svg { width:100%; height:100%; stroke:var(--text-secondary); fill:none; stroke-width:1.5; }
+.kv-tbtn.act .kv-ti svg { stroke:#00d4c8; }
+.kv-tbtn .kv-tl { font-family:var(--font-mono); font-size:7px; color:var(--text-dim); letter-spacing:0.12em; }
+.kv-tbtn.act .kv-tl { color:#00d4c8; }
+
+/* ── KANVAS brush panel (inline, not popup) ── */
+.kv-brush-panel { padding:8px; border-top:1px solid rgba(255,255,255,0.05); }
+.kv-slider-row { display:flex; align-items:center; gap:6px; margin-bottom:5px; }
+.kv-slider-lbl { font-family:var(--font-mono); font-size:8px; color:var(--text-dim);
+  letter-spacing:0.1em; width:38px; flex-shrink:0; text-transform:uppercase; }
+.kv-slider-val { font-family:var(--font-mono); font-size:8px; color:var(--text-secondary);
+  min-width:28px; text-align:right; flex-shrink:0; }
+.kv-slider { flex:1; height:2px; accent-color:#00d4c8; cursor:pointer; }
+
+/* ── KANVAS color chip ── */
+.kv-color-row { display:flex; align-items:center; gap:6px; padding:6px 8px; }
+.kv-color-chip {
+  width:28px; height:28px; border-radius:6px; flex-shrink:0;
+  border:1px solid rgba(255,255,255,0.1); cursor:pointer;
+  transition:box-shadow 0.14s;
+}
+.kv-color-chip:hover { box-shadow:0 0 8px rgba(0,212,200,0.4); }
+.kv-swatches { display:flex; flex-wrap:wrap; gap:3px; padding:0 8px 8px; }
+.kv-swatch {
+  width:16px; height:16px; border-radius:3px; cursor:pointer;
+  border:1px solid transparent; transition:all 0.1s; flex-shrink:0;
+}
+.kv-swatch:hover { transform:scale(1.2); border-color:rgba(255,255,255,0.3); }
+
+/* ── KANVAS layer list ── */
+.kv-layers { flex:1; overflow-y:auto; }
+.kv-layer-item {
+  display:flex; align-items:center; gap:6px; padding:5px 8px;
+  font-family:var(--font-mono); font-size:9px; color:var(--text-secondary);
+  cursor:pointer; transition:background 0.1s; border-bottom:1px solid rgba(255,255,255,0.03);
+}
+.kv-layer-item:hover { background:rgba(255,255,255,0.04); }
+.kv-layer-item.active { color:#00d4c8; background:rgba(0,212,200,0.05); }
+.kv-layer-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+/* ── KANVAS export buttons ── */
+.kv-export-row { display:flex; flex-direction:column; gap:3px; padding:8px; }
+.kv-export-btn {
+  display:flex; align-items:center; gap:7px; padding:7px 10px;
+  font-family:var(--font-mono); font-size:9px; letter-spacing:0.06em;
+  background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);
+  border-radius:5px; cursor:pointer; color:var(--text-secondary); transition:all 0.13s;
+}
+.kv-export-btn:hover { color:var(--text-primary); border-color:rgba(255,255,255,0.18); }
+.kv-export-btn.vad  { color:#00d4c8; border-color:rgba(0,212,200,0.25); }
+.kv-export-btn.vad:hover  { background:rgba(0,212,200,0.08); }
+.kv-export-btn.svg  { color:#00ffa3; border-color:rgba(0,255,163,0.2); }
+.kv-export-btn.svg:hover  { background:rgba(0,255,163,0.06); }
+.kv-export-btn.pdf  { color:var(--text-secondary); }
+.kv-export-btn svg  { width:11px; height:11px; stroke:currentColor; fill:none; stroke-width:1.5; flex-shrink:0; }
+
+/* ── Brush cursor ── */
+#kv-cursor {
+  position:absolute; border-radius:50%; pointer-events:none; z-index:20;
+  border:1.5px solid rgba(255,255,255,0.7); transform:translate(-50%,-50%);
+  display:none; mix-blend-mode:difference; transition:width 0.08s,height 0.08s;
+}
+
+/* ── KANVAS artboard overlay ── */
+body.kanvas-mode #canvas-wrap { cursor:crosshair; }
+
+/* ── Geometry dimmed in KANVAS ── */
+.kanvas-model-dim { opacity:0.22; }
+
+/* ── Print / PDF ── */
+@media print {
+  body { background:white !important; }
+  #topbar, #sidebar, #sb, #kv-cursor { display:none !important; }
+  #canvas-wrap { position:static !important; width:100% !important; height:100% !important; }
+  canvas#main-canvas { display:none; }
+  #kv-print-frame { display:block !important; width:100%; }
+}
+#kv-print-frame { display:none; }
+
 </style>
 </head>
 <body>
@@ -508,9 +650,6 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg-void)
         <div class="tb-dd-item" onclick="setTool('line');closeMenus()">Line<span class="dd-key">L</span></div>
         <div class="tb-dd-item" onclick="setTool('rect');closeMenus()">Rectangle<span class="dd-key">R</span></div>
         <div class="tb-dd-item" onclick="setTool('polygon');closeMenus()">Polygon<span class="dd-key">P</span></div>
-        <div class="tb-dd-item" onclick="setTool('circle');closeMenus()">Circle<span class="dd-key">C</span></div>
-        <div class="tb-dd-item" onclick="setTool('arc');closeMenus()">Arc (3-point)<span class="dd-key">A</span></div>
-        <div class="tb-dd-item" onclick="setTool('fillet');closeMenus()">Fillet<span class="dd-key">F</span></div>
         <div class="tb-dd-sep"></div>
         <div class="tb-dd-item" onclick="setTool('rotate');closeMenus()">Rotate<span class="dd-key">T</span></div>
         <div class="tb-dd-item" onclick="flattenSelection();closeMenus()">Flatten to 0°<span class="dd-key">0</span></div>
@@ -527,8 +666,10 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg-void)
       </div>
     </div>
   </div>
+  <div class="tb-sep"></div>
+  <button id="btn-kanvas" onclick="toggleKanvas()" title="KANVAS paperspace (Ctrl+W)"><div class="kv-mark">KV</div>KANVAS</button>
   <div class="tb-right">
-    <span class="tb-badge">Beta</span>
+    <span class="tb-badge">v0.3.0</span>
     <button id="unit-toggle" onclick="toggleUnits()" title="Toggle mm / inches (U)">
       <span class="unit-seg active" id="unit-seg-mm">mm</span>
       <span class="unit-divider"></span>
@@ -539,6 +680,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg-void)
 
 <!-- SIDEBAR -->
 <div id="sidebar">
+  <div class="kad-tools-panel">
   <div class="section-head">Draw Tools</div>
   <div class="tool-grid">
     <button class="tool-btn active" id="btn-select" onclick="setTool('select')">
@@ -565,30 +707,10 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg-void)
       <div class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></div>
       <span class="tool-label">DELETE</span>
     </button>
-    <button class="tool-btn" id="btn-circle" onclick="setTool('circle')">
-      <div class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="12" stroke-dasharray="2 2"/></svg></div>
-      <span class="tool-label">CIRCLE</span>
-    </button>
-    <button class="tool-btn" id="btn-arc" onclick="setTool('arc')">
-      <div class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 20 A11 11 0 0 1 20 4"/><circle cx="4" cy="20" r="2" fill="currentColor"/><circle cx="20" cy="4" r="2" fill="currentColor"/></svg></div>
-      <span class="tool-label">ARC</span>
-    </button>
-    <button class="tool-btn" id="btn-fillet" onclick="setTool('fillet')">
-      <div class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 19 L5 10 Q5 5 10 5 L19 5"/><path d="M5 19 Q5 14 10 14 L19 14" stroke-dasharray="2 2" opacity="0.5"/></svg></div>
-      <span class="tool-label">FILLET</span>
-    </button>
     <button class="tool-btn" id="btn-rotate" onclick="setTool('rotate')">
       <div class="tool-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg></div>
       <span class="tool-label">ROTATE</span>
     </button>
-  </div>
-
-  <!-- Fillet radius bar -->
-  <div id="fillet-bar" style="display:none;align-items:center;gap:6px;padding:5px 8px;background:var(--bg-panel2);border-bottom:1px solid var(--border);flex-shrink:0;">
-    <label style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase;">R</label>
-    <input type="number" id="fillet-r-input" value="5" min="0.001" step="0.5" style="background:var(--bg-panel);border:1px solid var(--border-bright);border-radius:3px;color:var(--accent);font-family:var(--font-mono);font-size:11px;padding:3px 6px;width:64px;outline:none;text-align:right;"/>
-    <span id="fillet-r-unit" style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);">mm</span>
-  </div>
   </div>
 
   <!-- Rotation controls (shown when rotate tool is active OR objects are selected) -->
@@ -665,7 +787,113 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg-void)
     <div class="prop-row"><span class="prop-key">Snap</span><span class="prop-val green" id="prop-snap">ON</span></div>
     <div class="prop-row"><span class="prop-key">Grid</span><span class="prop-val green" id="prop-grid-st">ON</span></div>
     <div class="prop-row" style="margin-top:6px;"><span class="prop-key">Layer</span><span class="prop-val"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#00d4ff;box-shadow:0 0 4px #00d4ff;margin-right:4px;"></span>Layer_0</span></div>
-  </div>
+  
+
+      <!-- ════ KANVAS PANEL ════ -->
+      <div id="kanvas-panel">
+        <div class="section-head" style="color:#00d4c8;letter-spacing:0.16em;">
+          KV KANVAS
+        </div>
+
+        <!-- Tools -->
+        <div class="kv-tool-grid">
+          <button class="kv-tbtn act" id="kv-tb-brush" onclick="kvSetTool('brush')">
+            <div class="kv-ti"><svg viewBox="0 0 24 24"><path d="M12 19c0 1.1.9 2 2 2h.5a2 2 0 0 0 0-4H14c-1.1 0-2 .9-2 2z"/><path d="M5.5 4.5L18 17"/></svg></div>
+            <span class="kv-tl">BRUSH</span>
+          </button>
+          <button class="kv-tbtn" id="kv-tb-pen" onclick="kvSetTool('pen')">
+            <div class="kv-ti"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
+            <span class="kv-tl">PEN</span>
+          </button>
+          <button class="kv-tbtn" id="kv-tb-line" onclick="kvSetTool('line')">
+            <div class="kv-ti"><svg viewBox="0 0 24 24"><line x1="4" y1="20" x2="20" y2="4"/><circle cx="4" cy="20" r="2" fill="currentColor"/><circle cx="20" cy="4" r="2" fill="currentColor"/></svg></div>
+            <span class="kv-tl">LINE</span>
+          </button>
+          <button class="kv-tbtn" id="kv-tb-text" onclick="kvSetTool('text')">
+            <div class="kv-ti"><svg viewBox="0 0 24 24"><path d="M4 7V4h16v3" fill="none" stroke-width="1.6"/><path d="M9 20h6" fill="none" stroke-width="1.6"/><line x1="12" y1="4" x2="12" y2="20" stroke-width="1.6"/></svg></div>
+            <span class="kv-tl">TEXT</span>
+          </button>
+          <button class="kv-tbtn" id="kv-tb-shape" onclick="kvSetTool('shape')">
+            <div class="kv-ti"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/></svg></div>
+            <span class="kv-tl">SHAPE</span>
+          </button>
+          <button class="kv-tbtn" id="kv-tb-erase" onclick="kvSetTool('erase')">
+            <div class="kv-ti"><svg viewBox="0 0 24 24"><path d="M20 20H7L3 16l11-11 7 7-1 8z"/><path d="M6 11l7 7"/></svg></div>
+            <span class="kv-tl">ERASE</span>
+          </button>
+        </div>
+
+        <!-- Color -->
+        <div class="kv-color-row">
+          <div class="kv-color-chip" id="kv-color-chip"
+               style="background:#ff3cac"
+               onclick="document.getElementById('kv-native-cp').click()"></div>
+          <input type="color" id="kv-native-cp" value="#ff3cac"
+                 oninput="kvSetColor(this.value)" style="display:none">
+          <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-dim);letter-spacing:0.08em;">Annotation Color</span>
+        </div>
+        <div class="kv-swatches" id="kv-swatches"></div>
+
+        <!-- Brush sliders -->
+        <div class="kv-brush-panel">
+          <div class="kv-slider-row">
+            <span class="kv-slider-lbl">Size</span>
+            <input type="range" class="kv-slider" id="kv-sl-size" min="1" max="80" value="14" oninput="kvSyncBrush()">
+            <span class="kv-slider-val" id="kv-v-size">14px</span>
+          </div>
+          <div class="kv-slider-row">
+            <span class="kv-slider-lbl">Opacity</span>
+            <input type="range" class="kv-slider" id="kv-sl-opacity" min="5" max="100" value="90" oninput="kvSyncBrush()">
+            <span class="kv-slider-val" id="kv-v-opacity">90%</span>
+          </div>
+          <div class="kv-slider-row">
+            <span class="kv-slider-lbl">Stab</span>
+            <input type="range" class="kv-slider" id="kv-sl-stab" min="0" max="97" value="72" oninput="kvSyncBrush()">
+            <span class="kv-slider-val" id="kv-v-stab">0.72</span>
+          </div>
+        </div>
+
+        <!-- Page size -->
+        <div style="padding:4px 8px;border-top:1px solid rgba(255,255,255,0.05);">
+          <div class="section-head" style="font-size:7.5px;border:none;padding:6px 0 3px;">PAGE</div>
+          <select style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:4px;color:var(--text-secondary);font-family:var(--font-mono);font-size:9px;padding:4px 6px;outline:none;"
+                  onchange="kvSetPageSize(this.value)">
+            <option value="a3p">A3 Portrait</option>
+            <option value="a3l">A3 Landscape</option>
+            <option value="a4p">A4 Portrait</option>
+            <option value="a4l">A4 Landscape</option>
+            <option value="ltp">Letter Portrait</option>
+            <option value="ltl">Letter Landscape</option>
+          </select>
+        </div>
+
+        <!-- Layers -->
+        <div style="border-top:1px solid rgba(255,255,255,0.05);">
+          <div class="section-head" style="font-size:7.5px;border:none;padding:6px 8px 3px;">
+            LAYERS · <span id="kv-stroke-count">0</span> objects
+          </div>
+          <div class="kv-layers" id="kv-layers"></div>
+        </div>
+
+        <!-- Export -->
+        <div class="kv-export-row" style="margin-top:auto;border-top:1px solid rgba(255,255,255,0.05);">
+          <div class="section-head" style="font-size:7.5px;border:none;padding:6px 0 3px;">EXPORT</div>
+          <button class="kv-export-btn vad" onclick="kvExportVAD()">
+            <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+            Save .vad
+          </button>
+          <button class="kv-export-btn svg" onclick="kvExportSVG()">
+            <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Export .svg
+          </button>
+          <button class="kv-export-btn pdf" onclick="kvPrintPDF()">
+            <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><rect x="2" y="14" width="20" height="8" rx="1"/><line x1="6" y1="18" x2="6.01" y2="18"/><line x1="10" y1="18" x2="10.01" y2="18"/></svg>
+            Print PDF
+          </button>
+        </div>
+
+      </div><!-- end kanvas-panel -->
+
 </div>
 
 <!-- CANVAS -->
@@ -704,16 +932,13 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg-void)
     <div class="sb-item"><span>T</span><span class="sb-val">rotate</span></div>
     <div class="sb-item"><span>Q/E</span><span class="sb-val">±90°</span></div>
     <div class="sb-item"><span>Z</span><span class="sb-val">extents</span></div>
-    <div class="sb-item"><span>C</span><span class="sb-val">circle</span></div>
-    <div class="sb-item"><span>A</span><span class="sb-val">arc</span></div>
-    <div class="sb-item"><span>F</span><span class="sb-val">fillet</span></div>
     <div class="sb-item"><span>J</span><span class="sb-val">join</span></div>
     <div class="sb-item"><span>X</span><span class="sb-val">explode</span></div>
     <div class="sb-item"><span>U</span><span class="sb-val">units</span></div>
-    <div class="sb-item"><span class="sb-val ok">.KAD Beta — Arc Edition</span></div>
+    <div class="sb-item"><span class="sb-val ok">.KAD v0.3</span></div>
     <div class="sb-cc">
       <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5" style="flex-shrink:0;opacity:0.7"><circle cx="12" cy="12" r="9"/><path d="M10 9.5A2.5 2.5 0 0 0 7.5 12a2.5 2.5 0 0 0 2.5 2.5"/><path d="M16 9.5A2.5 2.5 0 0 0 13.5 12a2.5 2.5 0 0 0 2.5 2.5"/></svg>
-      <span>© <span id="cc-year"></span> · Licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener" class="cc-link">CC BY-SA 4.0</a> · .KAD Beta</span>
+      <span>© <span id="cc-year"></span> · Licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener" class="cc-link">CC BY-SA 4.0</a> · .KAD Kernel-Aided Design</span>
     </div>
   </div>
 </div>
@@ -843,7 +1068,7 @@ html, body { width:100%; height:100%; overflow:hidden; background:var(--bg-void)
       </div>
       <div class="splash-note">
         This preference is saved locally and won't appear again.<br>
-        CC BY-SA 4.0 · © <span id="splash-year"></span> · .KAD Beta — Arc Edition
+        CC BY-SA 4.0 · © <span id="splash-year"></span> · .KAD Kernel-Aided Design
       </div>
     </div>
   </div>
@@ -1042,25 +1267,6 @@ const GeoMemory = {
              pts: pts.map(p=>({x:parseFloat(p.x.toFixed(6)), y:parseFloat(p.y.toFixed(6))}))};
     this.objects.push(o); updateProps(); return o;
   },
-  // CIRCLE: center + radius
-  addCircle(cx, cy, r, layer='Layer_0') {
-    const o={id:this.nextId++, type:'CIRCLE', layer,
-             cx:parseFloat(cx.toFixed(6)), cy:parseFloat(cy.toFixed(6)),
-             r:parseFloat(r.toFixed(6))};
-    this.objects.push(o); updateProps(); return o;
-  },
-  // ARC: center, radius, start/end angles in radians, direction
-  // startA and endA are in radians, measured from positive X axis (standard math convention)
-  // ccw = true for counter-clockwise (DXF convention)
-  addArc(cx, cy, r, startA, endA, ccw=true, layer='Layer_0') {
-    const o={id:this.nextId++, type:'ARC', layer,
-             cx:parseFloat(cx.toFixed(6)), cy:parseFloat(cy.toFixed(6)),
-             r:parseFloat(r.toFixed(6)),
-             startA:parseFloat(startA.toFixed(8)),
-             endA:parseFloat(endA.toFixed(8)),
-             ccw};
-    this.objects.push(o); updateProps(); return o;
-  },
   remove(id) {
     this.objects = this.objects.filter(o=>o.id!==id); updateProps();
   },
@@ -1074,31 +1280,13 @@ const GeoMemory = {
         pts.push({x:o.x2,y:o.y2});
       } else if(o.type==='POLYLINE'){
         for(const p of o.pts) pts.push({x:p.x, y:p.y});
-      } else if(o.type==='CIRCLE'){
-        // Quadrant snap points + center
-        pts.push({x:o.cx, y:o.cy});
-        pts.push({x:o.cx+o.r, y:o.cy});
-        pts.push({x:o.cx-o.r, y:o.cy});
-        pts.push({x:o.cx,     y:o.cy+o.r});
-        pts.push({x:o.cx,     y:o.cy-o.r});
-      } else if(o.type==='ARC'){
-        // Start and end points
-        pts.push({x:o.cx+o.r*Math.cos(o.startA), y:o.cy+o.r*Math.sin(o.startA)});
-        pts.push({x:o.cx+o.r*Math.cos(o.endA),   y:o.cy+o.r*Math.sin(o.endA)});
-        // Center
-        pts.push({x:o.cx, y:o.cy});
-        // Quadrant points that fall within the arc span
-        for(const qa of [0, Math.PI/2, Math.PI, 3*Math.PI/2]) {
-          if(angleOnArc(qa, o.startA, o.endA, o.ccw))
-            pts.push({x:o.cx+o.r*Math.cos(qa), y:o.cy+o.r*Math.sin(qa)});
-        }
       }
     }
     return pts;
   },
 
   serialize() {
-    return JSON.stringify({version:'0.5-beta',units:'mm',displayUnits:unitMode,nextId:this.nextId,objects:this.objects},null,2);
+    return JSON.stringify({version:'0.4',units:'mm',displayUnits:unitMode,nextId:this.nextId,objects:this.objects},null,2);
   },
   deserialize(s){
     try{
@@ -1140,79 +1328,7 @@ function findSnap(wx, wy) {
   return best;
 }
 
-// ── ARC / CIRCLE MATH ────────────────────────────────────
-
-// Normalise angle to [0, 2π)
-function normAngle(a) { a = a % (2*Math.PI); return a<0 ? a+2*Math.PI : a; }
-
-// Does angle 'a' fall on arc from startA to endA in given direction?
-function angleOnArc(a, startA, endA, ccw) {
-  a = normAngle(a); startA = normAngle(startA); endA = normAngle(endA);
-  if(ccw) {
-    if(startA <= endA) return a>=startA && a<=endA;
-    return a>=startA || a<=endA;
-  } else {
-    if(endA <= startA) return a>=endA && a<=startA;
-    return a>=endA || a<=startA;
-  }
-}
-
-// Arc bounding box (world coords) — accurate for arbitrary spans
-function arcBBox(cx, cy, r, startA, endA, ccw) {
-  let minX=Infinity, maxX=-Infinity, minY=Infinity, maxY=-Infinity;
-  // Include endpoints
-  const pts = [
-    {x:cx+r*Math.cos(startA), y:cy+r*Math.sin(startA)},
-    {x:cx+r*Math.cos(endA),   y:cy+r*Math.sin(endA)},
-  ];
-  // Include quadrant extrema if they fall on the arc
-  for(const qa of [0, Math.PI/2, Math.PI, 3*Math.PI/2]) {
-    if(angleOnArc(qa, startA, endA, ccw))
-      pts.push({x:cx+r*Math.cos(qa), y:cy+r*Math.sin(qa)});
-  }
-  for(const p of pts){
-    minX=Math.min(minX,p.x); maxX=Math.max(maxX,p.x);
-    minY=Math.min(minY,p.y); maxY=Math.max(maxY,p.y);
-  }
-  return {minX,maxX,minY,maxY};
-}
-
-// Three-point arc: given P1, P2 (on-arc), P3 — find circumscribed circle
-// Returns {cx,cy,r} or null if points are collinear
-function circumscribedCircle(p1, p2, p3) {
-  const ax=p1.x, ay=p1.y, bx=p2.x, by=p2.y, cx=p3.x, cy=p3.y;
-  const D = 2*(ax*(by-cy)+bx*(cy-ay)+cx*(ay-by));
-  if(Math.abs(D) < 1e-10) return null; // collinear
-  const ux = ((ax*ax+ay*ay)*(by-cy)+(bx*bx+by*by)*(cy-ay)+(cx*cx+cy*cy)*(ay-by))/D;
-  const uy = ((ax*ax+ay*ay)*(cx-bx)+(bx*bx+by*by)*(ax-cx)+(cx*cx+cy*cy)*(bx-ax))/D;
-  const r  = Math.hypot(ax-ux, ay-uy);
-  return {cx:parseFloat(ux.toFixed(6)), cy:parseFloat(uy.toFixed(6)), r:parseFloat(r.toFixed(6))};
-}
-
-// Point distance to arc (screen space) — returns distance to nearest point on arc
-function ptToArcDist(px, py, o) {
-  // o = {cx,cy,r,startA,endA,ccw} in world coords; px,py in screen coords
-  const sc = worldToScreen(o.cx, o.cy);
-  const screenR = o.r * cam.zoom;
-  // Angle from center to test point (screen space, Y-flipped)
-  const angle = Math.atan2(-(py-sc.y), px-sc.x); // world-angle convention
-  const wAngle = normAngle(angle);
-  if(angleOnArc(wAngle, o.startA, o.endA, o.ccw)) {
-    // Nearest point is on the arc — distance to circle edge
-    return Math.abs(Math.hypot(px-sc.x, py-sc.y) - screenR);
-  } else {
-    // Nearest point is one of the endpoints
-    const sp1 = worldToScreen(o.cx+o.r*Math.cos(o.startA), o.cy+o.r*Math.sin(o.startA));
-    const sp2 = worldToScreen(o.cx+o.r*Math.cos(o.endA),   o.cy+o.r*Math.sin(o.endA));
-    return Math.min(Math.hypot(px-sp1.x,py-sp1.y), Math.hypot(px-sp2.x,py-sp2.y));
-  }
-}
-
-// Point distance to circle edge (screen space)
-function ptToCircleDist(px, py, o) {
-  const sc = worldToScreen(o.cx, o.cy);
-  return Math.abs(Math.hypot(px-sc.x, py-sc.y) - o.r*cam.zoom);
-}
+// ── STATE ───────────────────────────────────────────────
 let activeTool   = 'select';
 let mouseWorld   = {x:0,y:0};
 let mouseScreen  = {x:0,y:0};
@@ -1245,17 +1361,7 @@ let rotateState = {
   previewDelta: 0,
 };
 
-// Circle tool
-let circleState = { active:false, cx:0, cy:0 };
-
-// Arc tool — three-point: click start, click on-arc point, click end
-let arcState = { active:false, phase:0, p1:null, p2:null };
-// phase 0: waiting for p1 (start)
-// phase 1: p1 set, waiting for p2 (on-arc / mid)
-// phase 2: p2 set, waiting for p3 (end) — live preview
-
-// Fillet tool
-let filletState = { active:false, line1:null, line2:null };
+// ── TOPBAR MENUS ────────────────────────────────────────
 let menuCloseTimer = null;
 
 function openMenu(name) {
@@ -1643,51 +1749,27 @@ function joinSelected() {
 
 // EXPLODE: break selected POLYLINE(s) back into individual LINE entities
 function explodeSelected() {
-  const selObjs = GeoMemory.objects.filter(o =>
-    selectedIds.has(o.id) && (o.type==='POLYLINE'||o.type==='CIRCLE'||o.type==='ARC'));
-  if(selObjs.length === 0) { showToast('Select polylines, circles, or arcs to explode'); return; }
+  const selPoly = GeoMemory.objects.filter(o => selectedIds.has(o.id) && o.type === 'POLYLINE');
+  if(selPoly.length === 0) { showToast('Select polylines to explode'); return; }
 
-  const SEGS = 72;
   let totalLines = 0;
   selectedIds.clear();
 
-  for(const obj of selObjs) {
-    GeoMemory.remove(obj.id);
-
-    if(obj.type==='POLYLINE'){
-      const n=obj.pts.length, segs=obj.closed?n:n-1;
-      for(let i=0;i<segs;i++){
-        const a=obj.pts[i], b=obj.pts[(i+1)%n];
-        const ln=GeoMemory.addLine(a.x,a.y,b.x,b.y,obj.layer);
-        selectedIds.add(ln.id); totalLines++;
-      }
-    } else if(obj.type==='CIRCLE'){
-      for(let i=0;i<SEGS;i++){
-        const a0=i/SEGS*2*Math.PI, a1=(i+1)/SEGS*2*Math.PI;
-        const ln=GeoMemory.addLine(
-          obj.cx+obj.r*Math.cos(a0),obj.cy+obj.r*Math.sin(a0),
-          obj.cx+obj.r*Math.cos(a1),obj.cy+obj.r*Math.sin(a1),obj.layer);
-        selectedIds.add(ln.id); totalLines++;
-      }
-    } else if(obj.type==='ARC'){
-      // Tessellate only the arc span
-      let sA=obj.startA, eA=obj.endA;
-      if(obj.ccw){ if(eA<=sA) eA+=2*Math.PI; }
-      else        { if(sA<=eA) sA+=2*Math.PI; }
-      const span=Math.abs(eA-sA);
-      const n=Math.max(3,Math.round(SEGS*span/(2*Math.PI)));
-      for(let i=0;i<n;i++){
-        const t0=i/n, t1=(i+1)/n;
-        const a0=obj.ccw?obj.startA+t0*span:obj.startA-t0*span;
-        const a1=obj.ccw?obj.startA+t1*span:obj.startA-t1*span;
-        const ln=GeoMemory.addLine(
-          obj.cx+obj.r*Math.cos(a0),obj.cy+obj.r*Math.sin(a0),
-          obj.cx+obj.r*Math.cos(a1),obj.cy+obj.r*Math.sin(a1),obj.layer);
-        selectedIds.add(ln.id); totalLines++;
-      }
+  for(const pl of selPoly) {
+    GeoMemory.remove(pl.id);
+    const n = pl.pts.length;
+    const segs = pl.closed ? n : n-1;
+    for(let i=0; i<segs; i++) {
+      const a = pl.pts[i];
+      const b = pl.pts[(i+1) % n];
+      const ln = GeoMemory.addLine(a.x,a.y,b.x,b.y,pl.layer);
+      selectedIds.add(ln.id);
+      totalLines++;
     }
   }
-  updateSelectionProps(); render();
+
+  updateSelectionProps();
+  render();
   showToast(`Exploded → ${totalLines} line${totalLines>1?'s':''}`);
 }
 
@@ -1748,169 +1830,21 @@ function drawPolyPreview() {
   ctx.restore();
 }
 
-function drawCirclePreview() {
-  if(activeTool!=='circle'||!circleState.active) return;
-  const sc=worldToScreen(circleState.cx,circleState.cy);
-  const ep=snapActive&&snapPoint?snapPoint:mouseWorld;
-  const r=Math.hypot(ep.x-circleState.cx,ep.y-circleState.cy)*cam.zoom;
-  ctx.save();
-  ctx.strokeStyle='rgba(0,212,255,0.6)'; ctx.lineWidth=1.2; ctx.setLineDash([5,4]);
-  ctx.beginPath(); ctx.arc(sc.x,sc.y,r,0,Math.PI*2); ctx.stroke();
-  ctx.setLineDash([]);
-  // Radius line
-  const sep=worldToScreen(ep.x,ep.y);
-  ctx.strokeStyle='rgba(0,212,255,0.3)'; ctx.lineWidth=1;
-  ctx.beginPath(); ctx.moveTo(sc.x,sc.y); ctx.lineTo(sep.x,sep.y); ctx.stroke();
-  drawDot(sc.x,sc.y,C.accent,3);
-  ctx.restore();
-}
-
-function drawArcPreview() {
-  if(activeTool!=='arc'||arcState.phase===0) return;
-  const ep=snapActive&&snapPoint?snapPoint:mouseWorld;
-  ctx.save();
-  ctx.strokeStyle='rgba(0,212,255,0.6)'; ctx.lineWidth=1.2; ctx.setLineDash([5,4]);
-
-  if(arcState.phase===1){
-    // Show line from p1 to cursor
-    const sp1=worldToScreen(arcState.p1.x,arcState.p1.y);
-    const sep=worldToScreen(ep.x,ep.y);
-    ctx.beginPath(); ctx.moveTo(sp1.x,sp1.y); ctx.lineTo(sep.x,sep.y); ctx.stroke();
-    drawDot(sp1.x,sp1.y,C.entity,3);
-  } else if(arcState.phase===2){
-    // Three points available — show live arc preview
-    const circ=circumscribedCircle(arcState.p1,arcState.p2,ep);
-    if(circ){
-      const {cx,cy,r}=circ;
-      const sc=worldToScreen(cx,cy);
-      const sr=r*cam.zoom;
-      const startA=Math.atan2(arcState.p1.y-cy,arcState.p1.x-cx);
-      const midA  =Math.atan2(arcState.p2.y-cy,arcState.p2.x-cx);
-      const endA  =Math.atan2(ep.y-cy,ep.x-cx);
-      const ccw=angleOnArc(normAngle(midA),normAngle(startA),normAngle(endA),true);
-      ctx.beginPath();
-      ctx.arc(sc.x,sc.y,sr,-endA,-startA,!ccw);
-      ctx.stroke();
-      // Endpoint dots
-      const sp1=worldToScreen(arcState.p1.x,arcState.p1.y);
-      const sp2=worldToScreen(arcState.p2.x,arcState.p2.y);
-      const sep=worldToScreen(ep.x,ep.y);
-      drawDot(sp1.x,sp1.y,C.entity,3);
-      drawDot(sp2.x,sp2.y,C.entity,2);
-      drawDot(sep.x,sep.y,C.entity,3);
-    }
-  }
-  ctx.setLineDash([]);
-  ctx.restore();
-}
-
-// ── FILLET MATH ──────────────────────────────────────────
-// Insert an arc tangent to two lines at their intersection.
-// Works for intersecting lines (corner fillet) and near-intersecting lines.
-function getFillet() {
-  const r=parseFloat(document.getElementById('fillet-r-input').value)||5;
-  return parseFloat(fromDisplay(r).toFixed(6));
-}
-
-function lineIntersect(l1,l2) {
-  // Returns intersection point of two infinite lines, or null if parallel
-  const dx1=l1.x2-l1.x1, dy1=l1.y2-l1.y1;
-  const dx2=l2.x2-l2.x1, dy2=l2.y2-l2.y1;
-  const denom=dx1*dy2-dy1*dx2;
-  if(Math.abs(denom)<1e-10) return null;
-  const t=((l2.x1-l1.x1)*dy2-(l2.y1-l1.y1)*dx2)/denom;
-  return {x:l1.x1+t*dx1, y:l1.y1+t*dy1, t};
-}
-
-function commitFillet(l1, l2) {
-  const r=getFillet();
-  if(r<=0){ showToast('Enter a fillet radius > 0'); return; }
-
-  const inter=lineIntersect(l1,l2);
-  if(!inter){ showToast('Lines are parallel — cannot fillet'); return; }
-
-  // Unit vectors along each line
-  const len1=Math.hypot(l1.x2-l1.x1,l1.y2-l1.y1);
-  const len2=Math.hypot(l2.x2-l2.x1,l2.y2-l2.y1);
-  if(len1<1e-10||len2<1e-10){ showToast('Degenerate line'); return; }
-
-  // Direction from intersection back along each line
-  const iv=inter;
-  // Choose direction pointing away from the midpoint of each line
-  const mid1x=(l1.x1+l1.x2)/2, mid1y=(l1.y1+l1.y2)/2;
-  const mid2x=(l2.x1+l2.x2)/2, mid2y=(l2.y1+l2.y2)/2;
-
-  // Unit vectors away from intersection along each line
-  let u1x=(mid1x-iv.x), u1y=(mid1y-iv.y);
-  let u2x=(mid2x-iv.x), u2y=(mid2y-iv.y);
-  const ul1=Math.hypot(u1x,u1y)||1; u1x/=ul1; u1y/=ul1;
-  const ul2=Math.hypot(u2x,u2y)||1; u2x/=ul2; u2y/=ul2;
-
-  // Half-angle bisector → fillet center direction
-  const bx=u1x+u2x, by=u1y+u2y;
-  const bl=Math.hypot(bx,by);
-  if(bl<1e-10){ showToast('Cannot compute fillet bisector'); return; }
-  const bnx=bx/bl, bny=by/bl;
-
-  // Distance along bisector to center
-  const halfAngle=Math.acos(Math.max(-1,Math.min(1,u1x*u2x+u1y*u2y)))/2;
-  if(Math.abs(halfAngle)<1e-6){ showToast('Lines are collinear'); return; }
-  const dist=r/Math.sin(halfAngle);
-
-  const cx=iv.x+bnx*dist, cy=iv.y+bny*dist;
-
-  // Tangent points: drop perpendicular from center to each line
-  const tp1dist=u1x*(cx-iv.x)+u1y*(cy-iv.y);
-  const tp1={x:iv.x+u1x*tp1dist, y:iv.y+u1y*tp1dist};
-  const tp2dist=u2x*(cx-iv.x)+u2y*(cy-iv.y);
-  const tp2={x:iv.x+u2x*tp2dist, y:iv.y+u2y*tp2dist};
-
-  // Arc angles
-  const startA=Math.atan2(tp1.y-cy,tp1.x-cx);
-  const endA  =Math.atan2(tp2.y-cy,tp2.x-cx);
-
-  // Determine direction: the arc should be on the inside of the corner
-  // Test which direction keeps the arc between the two lines
-  const midAng=(startA+endA)/2;
-  const testPt={x:cx+r*Math.cos(midAng), y:cy+r*Math.sin(midAng)};
-  // The test point should be closer to the intersection than the center
-  const ccw=Math.hypot(testPt.x-iv.x,testPt.y-iv.y)<dist;
-
-  // Trim the two lines to the tangent points
-  // l1: keep segment from far end to tp1
-  const l1keepStart=(Math.hypot(l1.x1-iv.x,l1.y1-iv.y)>Math.hypot(l1.x2-iv.x,l1.y2-iv.y));
-  const l1a=l1keepStart?{x:l1.x1,y:l1.y1}:{x:l1.x2,y:l1.y2};
-
-  const l2keepStart=(Math.hypot(l2.x1-iv.x,l2.y1-iv.y)>Math.hypot(l2.x2-iv.x,l2.y2-iv.y));
-  const l2a=l2keepStart?{x:l2.x1,y:l2.y1}:{x:l2.x2,y:l2.y2};
-
-  // Remove original lines, add trimmed lines + arc
-  GeoMemory.remove(l1.id);
-  GeoMemory.remove(l2.id);
-  GeoMemory.addLine(l1a.x,l1a.y,tp1.x,tp1.y,l1.layer);
-  GeoMemory.addLine(l2a.x,l2a.y,tp2.x,tp2.y,l2.layer);
-  GeoMemory.addArc(cx,cy,r,startA,endA,ccw,l1.layer);
-  showToast(`Fillet r=${fmtU(r)} committed`);
-  render();
-}
-
 // ── SELECTION ───────────────────────────────────────────
 function pickObject(sx,sy) {
+  // Test in reverse order (last drawn = top)
   for(const o of [...GeoMemory.objects].reverse()){
     if(o.type==='LINE'){
-      const a=worldToScreen(o.x1,o.y1),b=worldToScreen(o.x2,o.y2);
+      const a=worldToScreen(o.x1,o.y1), b=worldToScreen(o.x2,o.y2);
       if(ptSegDist(sx,sy,a.x,a.y,b.x,b.y)<HIT_PX) return o;
     } else if(o.type==='POLYLINE'){
-      const n=o.pts.length, segs=o.closed?n:n-1;
+      const n=o.pts.length;
+      const segs=o.closed?n:n-1;
       for(let i=0;i<segs;i++){
         const a=worldToScreen(o.pts[i].x,o.pts[i].y);
         const b=worldToScreen(o.pts[(i+1)%n].x,o.pts[(i+1)%n].y);
         if(ptSegDist(sx,sy,a.x,a.y,b.x,b.y)<HIT_PX) return o;
       }
-    } else if(o.type==='CIRCLE'){
-      if(ptToCircleDist(sx,sy,o)<HIT_PX) return o;
-    } else if(o.type==='ARC'){
-      if(ptToArcDist(sx,sy,o)<HIT_PX) return o;
     }
   }
   return null;
@@ -1976,20 +1910,9 @@ function normaliseAngle(deg) {
 function selectionCentroid() {
   let x0=Infinity, x1=-Infinity, y0=Infinity, y1=-Infinity;
   for (const o of GeoMemory.objects) {
-    if (!selectedIds.has(o.id)) continue;
-    if(o.type==='LINE'){
-      x0=Math.min(x0,o.x1,o.x2);x1=Math.max(x1,o.x1,o.x2);
-      y0=Math.min(y0,o.y1,o.y2);y1=Math.max(y1,o.y1,o.y2);
-    } else if(o.type==='POLYLINE'){
-      for(const p of o.pts){x0=Math.min(x0,p.x);x1=Math.max(x1,p.x);y0=Math.min(y0,p.y);y1=Math.max(y1,p.y);}
-    } else if(o.type==='CIRCLE'){
-      x0=Math.min(x0,o.cx-o.r);x1=Math.max(x1,o.cx+o.r);
-      y0=Math.min(y0,o.cy-o.r);y1=Math.max(y1,o.cy+o.r);
-    } else if(o.type==='ARC'){
-      const bb=arcBBox(o.cx,o.cy,o.r,o.startA,o.endA,o.ccw);
-      x0=Math.min(x0,bb.minX);x1=Math.max(x1,bb.maxX);
-      y0=Math.min(y0,bb.minY);y1=Math.max(y1,bb.maxY);
-    }
+    if (!selectedIds.has(o.id) || o.type !== 'LINE') continue;
+    x0=Math.min(x0,o.x1,o.x2); x1=Math.max(x1,o.x1,o.x2);
+    y0=Math.min(y0,o.y1,o.y2); y1=Math.max(y1,o.y1,o.y2);
   }
   if (!isFinite(x0)) return null;
   return { x:(x0+x1)/2, y:(y0+y1)/2 };
@@ -2022,18 +1945,6 @@ function rotateSelected(deltaDeg, pivot) {
       o.x1=na.x;o.y1=na.y;o.x2=nb.x;o.y2=nb.y; count++;
     } else if(o.type==='POLYLINE'){
       o.pts=o.pts.map(pt=>rotatePoint(pt.x,pt.y,p.x,p.y,deltaDeg));
-      count++;
-    } else if(o.type==='CIRCLE'){
-      // Rotate center — radius unchanged
-      const nc=rotatePoint(o.cx,o.cy,p.x,p.y,deltaDeg);
-      o.cx=nc.x; o.cy=nc.y; count++;
-    } else if(o.type==='ARC'){
-      // Rotate center — radius unchanged, shift start/end angles by deltaDeg
-      const nc=rotatePoint(o.cx,o.cy,p.x,p.y,deltaDeg);
-      const dRad=deltaDeg*Math.PI/180;
-      o.cx=nc.x; o.cy=nc.y;
-      o.startA=parseFloat((o.startA+dRad).toFixed(8));
-      o.endA  =parseFloat((o.endA  +dRad).toFixed(8));
       count++;
     }
   }
@@ -2181,9 +2092,7 @@ function cancelTool() {
   rectState   = {active:false};
   polyState   = {active:false};
   offsetState = {active:false, selectedLine:null, previewPts:null};
-  circleState = {active:false};
-  arcState    = {active:false, phase:0, p1:null, p2:null};
-  filletState = {active:false, line1:null, line2:null};
+  rotateState = {phase:0,pivotX:0,pivotY:0,pivotSet:false,draggingPivot:false,startAngle:0,previewDelta:0};
   selBox      = {active:false, pending:false, startSX:0, startSY:0, startWX:0, startWY:0};
   document.getElementById('rect-preview').style.display='none';
 }
@@ -2202,32 +2111,27 @@ function setTool(tool) {
   activeTool = tool;
 
   document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
-  const btnMap={select:'btn-select',line:'btn-line',rect:'btn-rect',polygon:'btn-polygon',
-                offset:'btn-offset',rotate:'btn-rotate',circle:'btn-circle',arc:'btn-arc',fillet:'btn-fillet'};
+  const btnMap={select:'btn-select',line:'btn-line',rect:'btn-rect',polygon:'btn-polygon',offset:'btn-offset',rotate:'btn-rotate'};
   if(btnMap[tool]) document.getElementById(btnMap[tool]).classList.add('active');
 
   document.getElementById('sb-mode').textContent=tool.toUpperCase();
 
   // Offset bar
-  document.getElementById('offset-bar').style.display  = tool==='offset'?'flex':'none';
+  document.getElementById('offset-bar').style.display = tool==='offset'?'flex':'none';
   // Poly bar
-  document.getElementById('poly-bar').style.display    = tool==='polygon'?'flex':'none';
-  // Fillet bar
-  document.getElementById('fillet-bar').style.display  = tool==='fillet'?'flex':'none';
-  // Rotate bar
+  document.getElementById('poly-bar').style.display   = tool==='polygon'?'flex':'none';
+  // Rotate bar — show when rotate tool OR when something is selected
   const rotateBar = document.getElementById('rotate-bar');
   if (tool === 'rotate') rotateBar.classList.add('visible');
+  // (selection-based visibility handled by updateSelectionProps)
 
   const hintMap = {
-    select:  'Click to select · Shift+click multi · <span>Drag</span> box · Middle-drag to pan · <span>Del</span> delete',
-    line:    '<span>Click</span> start → end · Type coords · <span>Enter</span> commits · <span>Esc</span> cancel',
-    rect:    '<span>Click</span> corner → opposite corner',
-    polygon: '<span>Click</span> center → radius',
-    circle:  '<span>Click</span> center → <span>click</span> point on circle',
-    arc:     '<span>Click</span> start → <span>click</span> on-arc → <span>click</span> end',
-    fillet:  'Enter radius · <span>Click</span> line 1 → <span>click</span> line 2',
-    offset:  '<span>Click</span> entity → distance popup → side → <span>click</span> confirm',
-    rotate:  'Select · <span>Click</span> pivot → drag → <span>click</span> confirm · <span>Q/E</span> ±90°',
+    select:  'Click line to select · Shift+click multi · <span>Drag</span> selection box · Middle-drag to pan · <span>Del</span> delete',
+    line:    '<span>Click</span> start → <span>click</span> end · Type to enter coords · <span>Enter</span> closes · <span>Esc</span> cancel',
+    rect:    '<span>Click</span> corner → <span>click</span> opposite corner',
+    polygon: '<span>Click</span> center → <span>click</span> to set radius & rotation',
+    offset:  '<span>Click</span> a line → move cursor to side → <span>click</span> to commit',
+    rotate:  'Drag box to select · <span>Click</span> canvas to set angle · Drag <span>pivot ⊕</span> to reposition it · <span>Q/E</span> ±90° · sidebar for precision',
   };
   document.getElementById('hint').innerHTML = hintMap[tool]||'';
 
@@ -2266,15 +2170,6 @@ function selBoxWindow(obj, lx, rx, by, ty) {
   if(obj.type==='POLYLINE'){
     return obj.pts.every(p=>p.x>=lx&&p.x<=rx&&p.y>=by&&p.y<=ty);
   }
-  if(obj.type==='CIRCLE'){
-    // All of bounding box must be inside selection
-    return (obj.cx-obj.r)>=lx&&(obj.cx+obj.r)<=rx&&
-           (obj.cy-obj.r)>=by&&(obj.cy+obj.r)<=ty;
-  }
-  if(obj.type==='ARC'){
-    const bb=arcBBox(obj.cx,obj.cy,obj.r,obj.startA,obj.endA,obj.ccw);
-    return bb.minX>=lx&&bb.maxX<=rx&&bb.minY>=by&&bb.maxY<=ty;
-  }
   return false;
 }
 
@@ -2293,15 +2188,6 @@ function selBoxCrossing(obj, lx, rx, by, ty) {
     }
     if(!obj.closed){const p=obj.pts[n-1];if(p.x>=lx&&p.x<=rx&&p.y>=by&&p.y<=ty) return true;}
     return false;
-  }
-  if(obj.type==='CIRCLE'){
-    // Bounding box overlap test — simpler than exact circle-rect intersection, sufficient for selection
-    return (obj.cx+obj.r)>=lx&&(obj.cx-obj.r)<=rx&&
-           (obj.cy+obj.r)>=by&&(obj.cy-obj.r)<=ty;
-  }
-  if(obj.type==='ARC'){
-    const bb=arcBBox(obj.cx,obj.cy,obj.r,obj.startA,obj.endA,obj.ccw);
-    return bb.maxX>=lx&&bb.minX<=rx&&bb.maxY>=by&&bb.minY<=ty;
   }
   return false;
 }
@@ -2360,6 +2246,7 @@ document.addEventListener('contextmenu', e=>{
 });
 
 function onMouseDown(e) {
+  if(kanvasMode && !spaceDown) return;  // KANVAS handles own pointer events
   if(e.button===2) return; // handled by contextmenu
   closeCtxMenu();
   closeMenus();
@@ -2431,97 +2318,33 @@ function onMouseDown(e) {
     }
 
     if(activeTool==='polygon') {
-      if(!polyState.active){ polyState={active:true, cx:wp.x, cy:wp.y}; }
-      else { commitPolygon(polyState.cx,polyState.cy,wp.x,wp.y); polyState={active:false}; }
-      render(); return;
-    }
-
-    // ── CIRCLE ───────────────────────────────────────────
-    if(activeTool==='circle') {
-      if(!circleState.active){
-        circleState={active:true, cx:wp.x, cy:wp.y};
+      if(!polyState.active){
+        polyState={active:true, cx:wp.x, cy:wp.y};
       } else {
-        const r=Math.hypot(wp.x-circleState.cx, wp.y-circleState.cy);
-        if(r>1e-6){ GeoMemory.addCircle(circleState.cx,circleState.cy,r); showToast(`Circle r=${fmtU(r)}`); }
-        circleState={active:false};
-      }
-      render(); return;
-    }
-
-    // ── ARC (3-point) ─────────────────────────────────────
-    if(activeTool==='arc') {
-      if(arcState.phase===0){
-        arcState={active:true, phase:1, p1:{x:wp.x,y:wp.y}, p2:null};
-        showToast('Arc: click on-arc point');
-      } else if(arcState.phase===1){
-        arcState.phase=2; arcState.p2={x:wp.x,y:wp.y};
-        showToast('Arc: click end point');
-      } else {
-        const circ=circumscribedCircle(arcState.p1, arcState.p2, {x:wp.x,y:wp.y});
-        if(!circ){ showToast('Points collinear — cannot form arc'); arcState={active:false,phase:0}; render(); return; }
-        const {cx,cy,r}=circ;
-        const startA=Math.atan2(arcState.p1.y-cy, arcState.p1.x-cx);
-        const midA  =Math.atan2(arcState.p2.y-cy, arcState.p2.x-cx);
-        const endA  =Math.atan2(wp.y-cy, wp.x-cx);
-        const ccw=angleOnArc(normAngle(midA),normAngle(startA),normAngle(endA),true);
-        GeoMemory.addArc(cx,cy,r,startA,endA,ccw);
-        showToast(`Arc r=${fmtU(r)}`);
-        arcState={active:false,phase:0,p1:null,p2:null};
-      }
-      render(); return;
-    }
-
-    // ── FILLET ────────────────────────────────────────────
-    if(activeTool==='fillet') {
-      const hit=pickLine(mouseScreen.x,mouseScreen.y);
-      if(!hit){ showToast('Click a line'); render(); return; }
-      if(!filletState.line1){
-        filletState={active:true, line1:hit};
-        selectedIds.clear(); selectedIds.add(hit.id);
-        showToast('Fillet: click second line');
-      } else if(hit.id!==filletState.line1.id){
-        commitFillet(filletState.line1, hit);
-        filletState={active:false,line1:null};
-        selectedIds.clear(); updateSelectionProps();
+        commitPolygon(polyState.cx,polyState.cy,wp.x,wp.y);
+        polyState={active:false};
       }
       render(); return;
     }
 
     if(activeTool==='offset') {
       if(!offsetState.active){
-        // Try line first, then circle/arc
-        const hit = pickLine(mouseScreen.x,mouseScreen.y) ||
-                    pickObject(mouseScreen.x,mouseScreen.y);
-        if(hit && (hit.type==='LINE'||hit.type==='CIRCLE'||hit.type==='ARC')){
+        const hit=pickLine(mouseScreen.x,mouseScreen.y);
+        if(hit){
           offsetState.active=true;
           offsetState.selectedLine=hit;
+          // Open distance popup at click position
           const rect=canvas.getBoundingClientRect();
           openOffsetPopup(rect.left + mouseScreen.x, rect.top + mouseScreen.y);
         } else {
-          showToast('Click a line, circle, or arc to offset');
+          showToast('Click closer to a line');
         }
       } else {
-        // Commit: check what type of entity is being offset
-        const ent=offsetState.selectedLine;
-        const d=getOffsetDist();
-        if(ent.type==='LINE' && offsetState.previewPts){
+        if(offsetState.previewPts){
           const p=offsetState.previewPts;
           GeoMemory.addLine(p.x1,p.y1,p.x2,p.y2);
-        } else if(ent.type==='CIRCLE'){
-          // Determine side: inside or outside based on cursor position vs center
-          const sc=worldToScreen(ent.cx,ent.cy);
-          const distToCtr=Math.hypot(mouseScreen.x-sc.x,mouseScreen.y-sc.y);
-          const side=distToCtr > ent.r*cam.zoom ? 1 : -1;
-          const nr=ent.r+side*d;
-          if(nr>0) GeoMemory.addCircle(ent.cx,ent.cy,nr,ent.layer);
-        } else if(ent.type==='ARC'){
-          const sc=worldToScreen(ent.cx,ent.cy);
-          const distToCtr=Math.hypot(mouseScreen.x-sc.x,mouseScreen.y-sc.y);
-          const side=distToCtr > ent.r*cam.zoom ? 1 : -1;
-          const nr=ent.r+side*d;
-          if(nr>0) GeoMemory.addArc(ent.cx,ent.cy,nr,ent.startA,ent.endA,ent.ccw,ent.layer);
+          showToast('Offset committed · '+fmtU(getOffsetDist()));
         }
-        showToast('Offset committed · '+fmtU(d));
         offsetState={active:false,selectedLine:null,previewPts:null};
       }
       render(); return;
@@ -2709,6 +2532,7 @@ function onWheel(e) {
 window.addEventListener('keydown', onKeyDown);
 
 function onKeyDown(e) {
+  if (kvHandleKey(e)) return;  // KANVAS intercepts first
   if(document.activeElement===dynField) return;
   if(document.activeElement.tagName==='INPUT') return;
 
@@ -2745,9 +2569,6 @@ function onKeyDown(e) {
     if(k==='l'||k==='L') setTool('line');
     if(k==='r'||k==='R') setTool('rect');
     if(k==='p'||k==='P') setTool('polygon');
-    if(k==='c'||k==='C') setTool('circle');
-    if(k==='a'||k==='A') setTool('arc');
-    if(k==='f'||k==='F') setTool('fillet');
     if(k==='s'||k==='S') setTool('select');
     if(k==='o'||k==='O') setTool('offset');
     if(k==='t'||k==='T') setTool('rotate');
@@ -2819,13 +2640,6 @@ function zoomExtents() {
         x0=Math.min(x0,p.x); x1=Math.max(x1,p.x);
         y0=Math.min(y0,p.y); y1=Math.max(y1,p.y);
       }
-    } else if(o.type==='CIRCLE'){
-      x0=Math.min(x0,o.cx-o.r); x1=Math.max(x1,o.cx+o.r);
-      y0=Math.min(y0,o.cy-o.r); y1=Math.max(y1,o.cy+o.r);
-    } else if(o.type==='ARC'){
-      const bb=arcBBox(o.cx,o.cy,o.r,o.startA,o.endA,o.ccw);
-      x0=Math.min(x0,bb.minX); x1=Math.max(x1,bb.maxX);
-      y0=Math.min(y0,bb.minY); y1=Math.max(y1,bb.maxY);
     }
   }
   const rx=(x1-x0)||20, ry=(y1-y0)||20, pad=0.15;
@@ -2874,8 +2688,6 @@ function render() {
   drawRubberBand();
   drawOffsetPreview();
   drawPolyPreview();
-  drawCirclePreview();
-  drawArcPreview();
   drawRotatePreview();
   drawSelBox();
 }
@@ -2944,40 +2756,6 @@ function drawEntities() {
     } else if(o.type==='POINT'){
       const p=worldToScreen(o.x,o.y);
       drawDot(p.x,p.y,C.point);
-
-    } else if(o.type==='CIRCLE'){
-      const sc=worldToScreen(o.cx,o.cy);
-      const sr=o.r*cam.zoom;
-      if(sel){ctx.shadowColor='rgba(255,170,0,0.5)';ctx.shadowBlur=10;}
-      ctx.strokeStyle=sel?C.entitySel:C.entity;
-      ctx.lineWidth=sel?2:1.2;
-      ctx.beginPath(); ctx.arc(sc.x,sc.y,sr,0,Math.PI*2); ctx.stroke();
-      ctx.shadowBlur=0;
-      // Center cross
-      ctx.lineWidth=0.5; ctx.strokeStyle=sel?C.entitySel:'rgba(0,212,255,0.3)';
-      ctx.beginPath();
-      ctx.moveTo(sc.x-6,sc.y); ctx.lineTo(sc.x+6,sc.y);
-      ctx.moveTo(sc.x,sc.y-6); ctx.lineTo(sc.x,sc.y+6);
-      ctx.stroke();
-      drawDot(sc.x,sc.y,sel?C.entitySel:C.entity,1.5);
-
-    } else if(o.type==='ARC'){
-      const sc=worldToScreen(o.cx,o.cy);
-      const sr=o.r*cam.zoom;
-      if(sel){ctx.shadowColor='rgba(255,170,0,0.5)';ctx.shadowBlur=10;}
-      ctx.strokeStyle=sel?C.entitySel:C.entity;
-      ctx.lineWidth=sel?2:1.2;
-      // Canvas arc: angles are screen-space (Y-flipped)
-      // World CCW → screen CW because Y is flipped; so negate angles
-      ctx.beginPath();
-      ctx.arc(sc.x, sc.y, sr, -o.endA, -o.startA, !o.ccw);
-      ctx.stroke();
-      ctx.shadowBlur=0;
-      // Endpoint dots
-      const sp1=worldToScreen(o.cx+o.r*Math.cos(o.startA),o.cy+o.r*Math.sin(o.startA));
-      const sp2=worldToScreen(o.cx+o.r*Math.cos(o.endA),  o.cy+o.r*Math.sin(o.endA));
-      drawDot(sp1.x,sp1.y,sel?C.entitySel:C.entity);
-      drawDot(sp2.x,sp2.y,sel?C.entitySel:C.entity);
     }
   }
   ctx.restore();
@@ -3061,50 +2839,14 @@ function drawRubberBand() {
 function drawOffsetPreview() {
   if(activeTool!=='offset') return;
   ctx.save();
-
   if(offsetState.selectedLine){
-    const ent=offsetState.selectedLine;
-    if(ent.type==='LINE'){
-      const a=worldToScreen(ent.x1,ent.y1), b=worldToScreen(ent.x2,ent.y2);
-      ctx.strokeStyle='rgba(255,170,0,0.9)'; ctx.lineWidth=2.5;
-      ctx.shadowColor='rgba(255,170,0,0.4)'; ctx.shadowBlur=6;
-      ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
-      ctx.shadowBlur=0;
-    } else if(ent.type==='CIRCLE'){
-      const sc=worldToScreen(ent.cx,ent.cy);
-      ctx.strokeStyle='rgba(255,170,0,0.9)'; ctx.lineWidth=2.5;
-      ctx.shadowColor='rgba(255,170,0,0.4)'; ctx.shadowBlur=6;
-      ctx.beginPath(); ctx.arc(sc.x,sc.y,ent.r*cam.zoom,0,Math.PI*2); ctx.stroke();
-      ctx.shadowBlur=0;
-      // Preview offset circle
-      const distToCtr=Math.hypot(mouseScreen.x-sc.x,mouseScreen.y-sc.y);
-      const side=distToCtr > ent.r*cam.zoom ? 1 : -1;
-      const nr=(ent.r+side*getOffsetDist())*cam.zoom;
-      if(nr>0){
-        ctx.strokeStyle='rgba(0,255,157,0.85)'; ctx.lineWidth=1.5;
-        ctx.setLineDash([5,4]);
-        ctx.beginPath(); ctx.arc(sc.x,sc.y,nr,0,Math.PI*2); ctx.stroke();
-        ctx.setLineDash([]);
-      }
-    } else if(ent.type==='ARC'){
-      const sc=worldToScreen(ent.cx,ent.cy);
-      ctx.strokeStyle='rgba(255,170,0,0.9)'; ctx.lineWidth=2.5;
-      ctx.shadowColor='rgba(255,170,0,0.4)'; ctx.shadowBlur=6;
-      ctx.beginPath(); ctx.arc(sc.x,sc.y,ent.r*cam.zoom,-ent.endA,-ent.startA,!ent.ccw); ctx.stroke();
-      ctx.shadowBlur=0;
-      const distToCtr=Math.hypot(mouseScreen.x-sc.x,mouseScreen.y-sc.y);
-      const side=distToCtr > ent.r*cam.zoom ? 1 : -1;
-      const nr=(ent.r+side*getOffsetDist())*cam.zoom;
-      if(nr>0){
-        ctx.strokeStyle='rgba(0,255,157,0.85)'; ctx.lineWidth=1.5;
-        ctx.setLineDash([5,4]);
-        ctx.beginPath(); ctx.arc(sc.x,sc.y,nr,-ent.endA,-ent.startA,!ent.ccw); ctx.stroke();
-        ctx.setLineDash([]);
-      }
-    }
+    const ln=offsetState.selectedLine;
+    const a=worldToScreen(ln.x1,ln.y1), b=worldToScreen(ln.x2,ln.y2);
+    ctx.strokeStyle='rgba(255,170,0,0.9)'; ctx.lineWidth=2.5;
+    ctx.shadowColor='rgba(255,170,0,0.4)'; ctx.shadowBlur=6;
+    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+    ctx.shadowBlur=0;
   }
-
-  // Line offset preview
   if(offsetState.previewPts){
     const p=offsetState.previewPts;
     const a=worldToScreen(p.x1,p.y1), b=worldToScreen(p.x2,p.y2);
@@ -3114,7 +2856,6 @@ function drawOffsetPreview() {
     ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
     ctx.setLineDash([]); ctx.shadowBlur=0;
   }
-
   ctx.restore();
 }
 
@@ -3169,7 +2910,7 @@ function parseDXF(text) {
     if (code === 9  && val === '$INSUNITS') { nextIsInsUnits = true; continue; }
     if (nextIsInsUnits && code === 70) {
       rawInsUnits = parseInt(val, 10);
-      scaleMM = (DXF_INSUNITS_TO_MM[rawInsUnits]!==undefined?DXF_INSUNITS_TO_MM[rawInsUnits]:1);
+      scaleMM = DXF_INSUNITS_TO_MM[rawInsUnits] ?? 1;
       nextIsInsUnits = false;
     }
   }
@@ -3414,9 +3155,9 @@ function importDXF(event) {
       0:'0 — Unitless', 1:'1 — Inches', 4:'4 — Millimeters', 2:'2 — Feet',
       5:'5 — Centimeters', 6:'6 — Meters',
     };
-    const rawUnits = (parsed.rawInsUnits!==undefined?parsed.rawInsUnits:0);
+    const rawUnits = parsed.rawInsUnits ?? 0;
     const insEl = document.getElementById('dlg-insunits');
-    insEl.textContent = (insunitsLabel[rawUnits]!==undefined?insunitsLabel[rawUnits]:String(rawUnits));
+    insEl.textContent = insunitsLabel[rawUnits] ?? `${rawUnits} — see DXF spec`;
     // Colour-code: 0 = ambiguous, 1 = inches (common gotcha), 4 = mm fine
     insEl.className = rawUnits===0 ? 'warn' : rawUnits===4 ? 'ok' : '';
 
@@ -3442,7 +3183,7 @@ function commitDxfImport() {
   // parseDXF now returns raw coordinates (no pre-scaling applied).
   let S;
   if (unitSel === 'auto') {
-    S = (DXF_INSUNITS_TO_MM[parsed.rawInsUnits]!==undefined?DXF_INSUNITS_TO_MM[parsed.rawInsUnits]:1);
+    S = DXF_INSUNITS_TO_MM[parsed.rawInsUnits] ?? 1;
   } else if (unitSel === 'in') {
     S = 25.4;
   } else {
@@ -3492,26 +3233,12 @@ function buildDXF(objects) {
     if(o.type==='POINT')
       lines.push('0','POINT','8',o.layer,'10',f(o.x),'20',f(o.y),'30','0.0000');
     if(o.type==='POLYLINE' && o.pts && o.pts.length>=2){
-      lines.push('0','LWPOLYLINE','8',o.layer,'90',String(o.pts.length),'70',o.closed?'1':'0','43','0.0');
+      // LWPOLYLINE: group 70 flag: 0=open, 1=closed
+      lines.push('0','LWPOLYLINE','8',o.layer,
+        '90',String(o.pts.length),  // vertex count
+        '70',o.closed?'1':'0',      // closed flag
+        '43','0.0');                 // constant width
       for(const p of o.pts){ lines.push('10',f(p.x),'20',f(p.y)); }
-    }
-    if(o.type==='CIRCLE')
-      // DXF CIRCLE: center (10/20), radius (40)
-      lines.push('0','CIRCLE','8',o.layer,
-        '10',f(o.cx),'20',f(o.cy),'30','0.0000',
-        '40',f(o.r));
-    if(o.type==='ARC'){
-      // DXF ARC: center (10/20), radius (40), start angle (50), end angle (51)
-      // DXF angles are in degrees, measured CCW from positive X axis
-      // DXF arc is always CCW; for CW arcs swap start/end
-      let startDeg=(o.startA*180/Math.PI+360)%360;
-      let endDeg  =(o.endA  *180/Math.PI+360)%360;
-      if(!o.ccw){ const tmp=startDeg; startDeg=endDeg; endDeg=tmp; }
-      lines.push('0','ARC','8',o.layer,
-        '10',f(o.cx),'20',f(o.cy),'30','0.0000',
-        '40',f(o.r),
-        '50',startDeg.toFixed(6),
-        '51',endDeg.toFixed(6));
     }
   }
   lines.push('0','ENDSEC','0','EOF');
@@ -3543,16 +3270,10 @@ function newDocument() {
 
 // ── UI HELPERS ──────────────────────────────────────────
 function updateProps() {
-  const lines   = GeoMemory.objects.filter(o=>o.type==='LINE').length;
-  const polys   = GeoMemory.objects.filter(o=>o.type==='POLYLINE').length;
-  const circles = GeoMemory.objects.filter(o=>o.type==='CIRCLE').length;
-  const arcs    = GeoMemory.objects.filter(o=>o.type==='ARC').length;
+  const lines    = GeoMemory.objects.filter(o=>o.type==='LINE').length;
+  const polys    = GeoMemory.objects.filter(o=>o.type==='POLYLINE').length;
   document.getElementById('prop-objects').textContent = GeoMemory.objects.length;
-  let detail = String(lines);
-  if(polys)   detail += ` +${polys}pl`;
-  if(circles) detail += ` +${circles}⊙`;
-  if(arcs)    detail += ` +${arcs}arc`;
-  document.getElementById('prop-lines').textContent = detail;
+  document.getElementById('prop-lines').textContent   = lines + (polys ? ` (+${polys} poly)` : '');
 }
 
 let toastT;
@@ -3573,8 +3294,1089 @@ setTimeout(()=>{
   GeoMemory.addLine(-15,0,15,0);
   GeoMemory.addLine(0,-15,0,15);
   render();
-  showToast('.KAD Beta · C=circle · A=arc · F=fillet · Right-click for menu');
+  showToast('Demo loaded · origin cross ±15mm · Right-click for menu · Press L/R/P to draw');
 }, 250);
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  KANVAS — Paperspace mode for KAD
+//  Vector annotation layer over KAD geometry
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── KANVAS STATE ──────────────────────────────────────────────────────────────
+let kanvasMode   = false;
+let kvTool       = 'brush';  // active KANVAS tool
+let kvRafId      = null;
+let kvDirty      = false;
+
+// KV page (A3 default for drafting)
+const KV_PAGE_SIZES = {
+  a4p:   { w:210,   h:297,   label:'A4 Portrait',      dim:'210×297 mm',  unit:'mm' },
+  a4l:   { w:297,   h:210,   label:'A4 Landscape',     dim:'297×210 mm',  unit:'mm' },
+  a3p:   { w:297,   h:420,   label:'A3 Portrait',      dim:'297×420 mm',  unit:'mm' },
+  a3l:   { w:420,   h:297,   label:'A3 Landscape',     dim:'420×297 mm',  unit:'mm' },
+  ltp:   { w:215.9, h:279.4, label:'Letter Portrait',  dim:'8.5×11 in',   unit:'mm' },
+  ltl:   { w:279.4, h:215.9, label:'Letter Landscape', dim:'11×8.5 in',   unit:'mm' },
+  sq:    { w:200,   h:200,   label:'Square 200mm',     dim:'200×200 mm',  unit:'mm' },
+  inst:  { w:150,   h:150,   label:'Instagram 1:1',    dim:'150×150 mm',  unit:'mm' },
+  screen:{ w:1920,  h:1080,  label:'Screen 1920×1080', dim:'1920×1080 px', unit:'px' },
+};
+let KV_PAGE = KV_PAGE_SIZES.a3p;
+
+// KV coordinate system — page-relative world coords (mm)
+// KV_PAGE sits centred on KAD's canvas
+function kvGetPageOrigin() {
+  // Centre the KV page on the current camera view
+  const cW = canvas.width, cH = canvas.height;
+  return {
+    x: cW/2 - (KV_PAGE.w * cam.zoom)/2,
+    y: cH/2 - (KV_PAGE.h * cam.zoom)/2,
+  };
+}
+// Page mm → screen px
+function kvW2S(px, py) {
+  const o = kvGetPageOrigin();
+  return { x: o.x + px * cam.zoom, y: o.y + (KV_PAGE.h - py) * cam.zoom };
+}
+// Screen px → page mm
+function kvS2W(sx, sy) {
+  const o = kvGetPageOrigin();
+  return { x: (sx - o.x) / cam.zoom, y: KV_PAGE.h - (sy - o.y) / cam.zoom };
+}
+// pointer event → screen coords
+function kvSpt(e) {
+  const r = canvas.getBoundingClientRect();
+  return { x: (e.clientX - r.left) * (canvas.width / r.width),
+            y: (e.clientY - r.top)  * (canvas.height / r.height) };
+}
+
+// KV offscreen canvas for erase compositing
+let kvEraseC = null, kvEraseCtx = null;
+function kvInitEraseCanvas() {
+  kvEraseC = document.createElement('canvas');
+  kvEraseC.width  = canvas.width;
+  kvEraseC.height = canvas.height;
+  kvEraseCtx = kvEraseC.getContext('2d');
+}
+
+// ── KVM (KANVASMemory — annotation stroke store) ──────────────────────────────
+const KVM = {
+  strokes: [],
+  nextId:  1,
+  activeLayer: 'Ink',
+  layers: [
+    { name:'Ink',    color:'#ff3cac', visible:true },
+    { name:'Sketch', color:'#4d96ff', visible:true },
+    { name:'Detail', color:'#00ffa3', visible:true },
+  ],
+  push(s) { this.strokes.push(s); updateProps(); },
+  clear()  { this.strokes=[]; this.nextId=1; updateProps(); },
+  visibleStrokes() {
+    const vis = new Set(this.layers.filter(l=>l.visible).map(l=>l.name));
+    return this.strokes.filter(s => vis.has(s.layer) || s.layer==='__erase__');
+  },
+  serialize() {
+    const key = Object.keys(PAGE_SIZES).find(k=>PAGE_SIZES[k]===PAGE)||'a4p';
+    return JSON.stringify({ version:'1.0', layers:this.layers,
+      activeLayer:this.activeLayer, nextId:this.nextId,
+      strokes:this.strokes, page:key }, null, 2);
+  },
+  deserialize(str) {
+    try {
+      const d = JSON.parse(str);
+      this.strokes     = d.strokes     || [];
+      this.layers      = d.layers      || [{name:'Ink',color:'#ff3cac',visible:true}];
+      this.activeLayer = d.activeLayer || 'Ink';
+      this.nextId      = d.nextId      || 1;
+      if (d.page && PAGE_SIZES[d.page]) {
+        PAGE = PAGE_SIZES[d.page];
+        document.getElementById('page-size-sel').value = d.page;
+        document.getElementById('page-dim-pill').textContent = PAGE.dim;
+        const _pp=document.getElementById('p-page'); if(_pp) _pp.textContent=PAGE.label;
+      }
+      updateProps(); buildLayerList(); return true;
+    } catch { return false; }
+  },
+};
+
+
+// ── BRUSH STATE ───────────────────────────────────────────────────────────────
+const B = {
+  size: 18, opacity: 0.90, alpha: 0.82,
+  taper: 0.70, smooth: 0.50,
+  color: '#ff3cac',
+  blend: 'source-over',
+  glow: false,
+};
+
+// Eraser state
+const ER = { size:24, hardness:1.0, strokeMode:false };
+
+// Shape state
+const SH = {
+  type: 'rect',        // 'rect'|'ellipse'|'tri'
+  fillColor: '#ff3cac',
+  strokeColor: '#2b8fd4',
+  strokeWidth: 2,
+  fillNone: false,
+  strokeNone: true,
+  opacity: 1.0,
+};
+
+
+// ── SNAPPING ─────────────────────────────────────────────────────────────────
+let kvSnapEnabled = true;
+function kvSnapPt(wx, wy) {
+  if (!kvSnapEnabled) return {x:wx, y:wy};
+  const sp = 1; // 1mm snap in KANVAS
+  return {x:Math.round(wx/sp)*sp, y:Math.round(wy/sp)*sp};
+}
+function kvSnap() {
+  HIST.u.push(JSON.stringify(KVM.strokes));
+  if (HIST.u.length > HIST.max) HIST.u.shift();
+  HIST.r = [];
+  updateHistLabel();
+}
+
+// ── BEZIER ENGINE ────────────────────────────────────────────────────────────
+function kvEvalBez(b,t) {
+  const mt=1-t;
+  return {
+    x:mt*mt*mt*b.x0+3*mt*mt*t*b.cx1+3*mt*t*t*b.cx2+t*t*t*b.x3,
+    y:mt*mt*mt*b.y0+3*mt*mt*t*b.cy1+3*mt*t*t*b.cy2+t*t*t*b.y3
+  };
+}
+function kvFitBeziers(pts) {
+  if (pts.length<2) return [];
+  const sp = rdp(pts, 0.8+B.smooth*3.0);
+  if (sp.length<2) return [];
+  const segs=[], tension=0.32;
+  for (let i=0;i<sp.length-1;i++) {
+    const p0=sp[i], p3=sp[i+1];
+    const prev=sp[Math.max(0,i-1)], next=sp[Math.min(sp.length-1,i+2)];
+    segs.push({
+      x0:p0.x,y0:p0.y,
+      cx1:p0.x+(p3.x-prev.x)*tension, cy1:p0.y+(p3.y-prev.y)*tension,
+      cx2:p3.x-(next.x-p0.x)*tension, cy2:p3.y-(next.y-p0.y)*tension,
+      x3:p3.x,y3:p3.y, w0:p0.w||2,w3:p3.w||2
+    });
+  }
+  return segs;
+}
+
+// ── RENDER PIPELINE ───────────────────────────────────────────────────────────
+function kvRenderToCtx(tctx, s, isLive) {
+  if (!s) return;
+  if (s.type==='text') {
+    const sp=kvW2S(s.x,s.y);tctx.save();tctx.globalAlpha=s.opacity||0.9;
+    tctx.font=`bold ${Math.round(s.size*cam.zoom*0.75)}px Syne,sans-serif`;
+    tctx.fillStyle=s.color;tctx.textBaseline='bottom';
+    tctx.fillText(s.text,sp.x,sp.y);tctx.restore();return;
+  }
+  // Handle shape objects
+  if (s.type==='shape') {
+    kvRenderShapeToCtx(tctx, s, isLive); return;
+  }
+
+  if (!s.beziers||!s.beziers.length) return;
+  tctx.save();
+  tctx.globalAlpha              = isLive ? Math.min(1,s.opacity*1.04) : s.opacity;
+  tctx.globalCompositeOperation = s.blend||'source-over';
+
+  // Glow pass — neon bloom from VADneon
+  if (s.glow && !isLive) {
+    tctx.save();
+    tctx.globalAlpha *= 0.20;
+    tctx.filter=`blur(${Math.max(3,s.size*0.45)}px)`;
+    splineToCtx(tctx, s.beziers, s.color, s.size*2.0);
+    tctx.filter='none';
+    tctx.restore();
+  }
+
+  // Variable-width silhouette mesh — the core rendering engine
+  silhouetteToCtx(tctx, s.beziers, s.color, s.size, s.taper||0.7);
+  tctx.restore();
+}
+function kvRenderShapeToCtx(tctx, s, isLive) {
+  const tl = kvW2S(s.x, s.y + s.h);
+  const br = kvW2S(s.x + s.w, s.y);
+  const sw = br.x - tl.x;
+  const sh = br.y - tl.y;
+  if (sw<1||sh<1) return;
+
+  tctx.save();
+  tctx.globalAlpha = s.opacity;
+
+  tctx.beginPath();
+  if (s.shapeType==='rect') {
+    tctx.rect(tl.x, tl.y, sw, sh);
+  } else if (s.shapeType==='ellipse') {
+    tctx.ellipse(tl.x+sw/2, tl.y+sh/2, sw/2, sh/2, 0, 0, Math.PI*2);
+  } else { // tri
+    tctx.moveTo(tl.x+sw/2, tl.y);
+    tctx.lineTo(tl.x+sw, tl.y+sh);
+    tctx.lineTo(tl.x, tl.y+sh);
+    tctx.closePath();
+  }
+
+  if (s.fillColor) {
+    tctx.fillStyle = s.fillColor;
+    tctx.fill();
+  }
+  if (s.strokeColor) {
+    tctx.strokeStyle = s.strokeColor;
+    tctx.lineWidth   = s.strokeWidth * cam.zoom;
+    tctx.stroke();
+  }
+  tctx.restore();
+}
+function kvRebuildEraseCanvas() {
+  kvEraseCtx.clearRect(0,0,CW(),CH());
+  const vis = new Set(KVM.layers.filter(l=>l.visible).map(l=>l.name));
+  for (const s of KVM.strokes) {
+    if (s.layer==='__erase__') continue;
+    if (!vis.has(s.layer)) continue;
+    kvRenderToCtx(kvEraseCtx, s, false);
+  }
+  for (const s of KVM.strokes) {
+    if (s.layer!=='__erase__') continue;
+    kvEraseCtx.save();
+    kvEraseCtx.globalCompositeOperation='destination-out';
+    for (const region of s.regions) paintErasePath(kvEraseCtx, region.pts, region.size, region.hardness);
+    kvEraseCtx.restore();
+  }
+}
+function kvDrawLiveStroke() {
+  if (!isDrawing||tool!=='brush'||livePts.length<2) return;
+  const s={id:-1,layer:VM.activeLayer,color:B.color,blend:B.blend,
+    opacity:B.opacity*0.88,size:B.size,taper:B.taper,glow:false,
+    beziers:fitBeziers(livePts),spinePoints:livePts};
+  if (s.beziers.length) renderToCtx(ctx,s,true);
+
+  // Glowing neon tip (from VADneon)
+  if (B.glow && livePts.length) {
+    const tip=livePts[livePts.length-1];
+    const tp=kvW2S(tip.x,tip.y);
+    const rad=Math.max(B.size,8)*cam.zoom*1.6;
+    const gr=ctx.createRadialGradient(tp.x,tp.y,0,tp.x,tp.y,rad);
+    gr.addColorStop(0,B.color+'55'); gr.addColorStop(1,'transparent');
+    ctx.save(); ctx.globalAlpha=0.28; ctx.globalCompositeOperation=B.blend;
+    ctx.fillStyle=gr; ctx.beginPath(); ctx.arc(tp.x,tp.y,rad,0,Math.PI*2); ctx.fill(); ctx.restore();
+  }
+}
+
+// ── DRAWING ENGINE (EMA + pointer handlers) ────────────────────────────────
+// ── EMA STABILIZER ─────────────────────────────────────────────────────────────
+class EMAStab {
+  constructor() { this.x=0; this.y=0; this.ready=false; }
+  reset(x,y) { this.x=x; this.y=y; this.ready=true; }
+  step(rx,ry,a) {
+    if (!this.ready) this.reset(rx,ry);
+    this.x = a*this.x+(1-a)*rx;
+    this.y = a*this.y+(1-a)*ry;
+    return {x:this.x,y:this.y};
+  }
+}
+const ema = new EMAStab();
+
+// ── VELOCITY TRACKER ──────────────────────────────────────────────────────────
+class VelTrack {
+  constructor() { this.px=0; this.py=0; this.t=0; this.vel=0; }
+  reset(x,y) { this.px=x; this.py=y; this.t=performance.now(); this.vel=0; }
+  update(x,y) {
+    const now=performance.now(), dt=Math.max(now-this.t,1);
+    const spd=Math.sqrt((x-this.px)**2+(y-this.py)**2)/dt;
+    this.vel=0.55*this.vel+0.45*spd;
+    this.px=x; this.py=y; this.t=now; return this.vel;
+  }
+  width(base, taper) { return Math.max(base*(1-taper*(Math.min(this.vel,5)/5)*0.78),0.5); }
+}
+const vel = new VelTrack();
+
+// ── CURVE FITTING ─────────────────────────────────────────────────────────────
+function rdp(pts, eps=1.5) {
+  if (pts.length<=2) return pts;
+  const p0=pts[0], pN=pts[pts.length-1];
+  const dx=pN.x-p0.x, dy=pN.y-p0.y, len2=dx*dx+dy*dy||1;
+  let maxD=0, idx=0;
+  for (let i=1;i<pts.length-1;i++) {
+    const t=Math.max(0,Math.min(1,((pts[i].x-p0.x)*dx+(pts[i].y-p0.y)*dy)/len2));
+    const d=(p0.x+t*dx-pts[i].x)**2+(p0.y+t*dy-pts[i].y)**2;
+    if(d>maxD){maxD=d;idx=i;}
+  }
+  if(maxD>eps*eps) return [...rdp(pts.slice(0,idx+1),eps).slice(0,-1),...rdp(pts.slice(idx),eps)];
+  return [p0,pN];
+}
+
+function kvFitBeziers(pts) {
+  if (pts.length<2) return [];
+  const sp = rdp(pts, 0.8+B.smooth*3.0);
+  if (sp.length<2) return [];
+  const segs=[], tension=0.32;
+  for (let i=0;i<sp.length-1;i++) {
+    const p0=sp[i], p3=sp[i+1];
+    const prev=sp[Math.max(0,i-1)], next=sp[Math.min(sp.length-1,i+2)];
+    segs.push({
+      x0:p0.x,y0:p0.y,
+      cx1:p0.x+(p3.x-prev.x)*tension, cy1:p0.y+(p3.y-prev.y)*tension,
+      cx2:p3.x-(next.x-p0.x)*tension, cy2:p3.y-(next.y-p0.y)*tension,
+      x3:p3.x,y3:p3.y, w0:p0.w||2,w3:p3.w||2
+    });
+  }
+  return segs;
+}
+
+function kvEvalBez(b,t) {
+  const mt=1-t;
+  return {
+    x:mt*mt*mt*b.x0+3*mt*mt*t*b.cx1+3*mt*t*t*b.cx2+t*t*t*b.x3,
+    y:mt*mt*mt*b.y0+3*mt*mt*t*b.cy1+3*mt*t*t*b.cy2+t*t*t*b.y3
+  };
+}
+
+// ── SILHOUETTE MESH ────────────────────────────────────────────────────────────
+function silhouette(pts) {
+  if (pts.length<2) return null;
+  const L=[],R=[];
+  for (let i=0;i<pts.length;i++) {
+    const p=pts[i];
+    const nx=i<pts.length-1?pts[i+1].x:pts[i-1].x;
+    const ny=i<pts.length-1?pts[i+1].y:pts[i-1].y;
+    const px=i>0?pts[i-1].x:pts[i+1].x;
+    const py=i>0?pts[i-1].y:pts[i+1].y;
+    let tx=nx-px, ty=ny-py;
+    const tl=Math.sqrt(tx*tx+ty*ty)||1;
+    tx/=tl; ty/=tl;
+    const w=(p.w||2)*0.5;
+    L.push({x:p.x-ty*w,y:p.y+tx*w});
+    R.push({x:p.x+ty*w,y:p.y-tx*w});
+  }
+  return {L,R};
+}
+
+// ── TRUE PIXEL ERASER ─────────────────────────────────────────────────────────
+function kvRebuildEraseCanvas() {
+  kvEraseCtx.clearRect(0,0,CW(),CH());
+  const vis = new Set(VM.layers.filter(l=>l.visible).map(l=>l.name));
+  for (const s of KVM.strokes) {
+    if (s.layer==='__erase__') continue;
+    if (!vis.has(s.layer)) continue;
+    kvRenderToCtx(kvEraseCtx, s, false);
+  }
+  for (const s of KVM.strokes) {
+    if (s.layer!=='__erase__') continue;
+    kvEraseCtx.save();
+    kvEraseCtx.globalCompositeOperation='destination-out';
+    for (const region of s.regions) paintErasePath(kvEraseCtx, region.pts, region.size, region.hardness);
+    kvEraseCtx.restore();
+  }
+}
+
+function paintErasePath(tctx, pts, size, hardness) {
+  if (!pts||!pts.length) return;
+  const r = size * cam.zoom * 0.5;
+  if (hardness>0.8) {
+    tctx.beginPath();
+    for (let i=0;i<pts.length;i++) {
+      const sp=kvW2S(pts[i].x,pts[i].y);
+      if(i===0) tctx.moveTo(sp.x,sp.y); else tctx.lineTo(sp.x,sp.y);
+    }
+    tctx.lineWidth = size*cam.zoom;
+    tctx.lineCap='round'; tctx.lineJoin='round';
+    tctx.strokeStyle='rgba(0,0,0,1)'; tctx.stroke();
+  } else {
+    for (let i=0;i<pts.length;i++) {
+      const sp = kvW2S(pts[i].x,pts[i].y);
+      const gr = tctx.createRadialGradient(sp.x,sp.y,0,sp.x,sp.y,r);
+      gr.addColorStop(0,'rgba(0,0,0,1)');
+      gr.addColorStop(hardness,'rgba(0,0,0,0.5)');
+      gr.addColorStop(1,'rgba(0,0,0,0)');
+      tctx.fillStyle=gr;
+      tctx.beginPath(); tctx.arc(sp.x,sp.y,r,0,Math.PI*2); tctx.fill();
+    }
+  }
+}
+
+// ── GRID ──────────────────────────────────────────────────────────────────────
+let selectedId  = null;
+
+function toggleSnap() {
+  snapEnabled = !snapEnabled;
+  const el = document.getElementById('rp-snap');
+  if (el) { el.textContent=snapEnabled?'ON':'OFF'; el.className='pv '+(snapEnabled?'ok':'am'); }
+  showToast('Snap '+(snapEnabled?'ON':'OFF'));
+}
+function snapPt(wx,wy) {
+  if (!snapEnabled||!showGrid) return {x:wx,y:wy};
+  const sp=gridSpacing(); return {x:Math.round(wx/sp)*sp,y:Math.round(wy/sp)*sp};
+}
+function gridSpacing() {
+  const steps=[0.5,1,2,5,10,20,50,100,200,500,1000];
+  for (const s of steps) if (s*cam.zoom>=38) return s;
+  return 1000;
+}
+
+// ── TOOL STATE ────────────────────────────────────────────────────────────────
+let tool       = 'brush';
+let rawPts     = [];
+let livePts    = [];
+let penAnchors = [];
+let penDots    = [];
+let lineStart  = null;
+let shapeStart = null;  // for shape drag
+let liveErasePts = [];
+
+function setTool(t) {
+  if (tool==='pen' && t!=='pen' && penAnchors.length>1) commitPen();
+  clearPenDots(); penAnchors=[]; lineStart=null; shapeStart=null;
+
+  document.getElementById('eraser-panel').classList.toggle('visible', t==='eraser');
+  document.getElementById('shape-panel').classList.toggle('visible', t==='shape');
+  document.getElementById('brush-panel').style.display = (t==='eraser'||t==='shape') ? 'none' : 'flex';
+
+  tool = t;
+  document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('act'));
+  const M = {select:'tb-select',brush:'tb-brush',pen:'tb-pen',
+             line:'tb-line',shape:'tb-shape',eraser:'tb-eraser',eyedrop:'tb-eyedrop',text:'tb-text'};
+  if (M[t]) document.getElementById(M[t]).classList.add('act');
+  document.getElementById('sb-tool').textContent = t.toUpperCase();
+
+  const H = {
+    select:  '<em>DRAG</em> or <em>Space</em> to pan · Scroll to zoom',
+    brush:   '<em>DRAW</em> freehand · <em>[/]</em> resize · EMA stabilizer active',
+    pen:     '<em>CLICK</em> anchors · <em>Enter</em> or <em>Dbl-click</em> to commit',
+    line:    '<em>CLICK</em> start · <em>CLICK</em> end · line length shown in mm',
+    shape:   '<em>DRAG</em> to draw shape · Rect / Oval / Triangle · Fill+Stroke',
+    eraser:  '<em>PAINT</em> to erase · PIXEL mode cuts real holes · STROKE deletes objects',
+    eyedrop: '<em>CLICK</em> any pixel to pick its color',
+    text:    '<em>CLICK</em> on the artboard to place text',
+  };
+  if (t==='text') { canvas.style.cursor='text'; } else { canvas.style.cursor=''; }
+  document.getElementById('hint').innerHTML = H[t]||'';
+  updateCursor(); kvScheduleDraw();
+}
+
+function updateCursor() {
+  const isPan = tool==='select'||spaceDown;
+  canvas.className = isPanning?'panning':(isPan?'pan-mode':'');
+}
+
+// ── BRUSH CURSOR ──────────────────────────────────────────────────────────────
+const bcEl = document.getElementById('brush-cursor');
+function updateBrushCursor() {
+  const sz = tool==='eraser' ? ER.size*cam.zoom : Math.max(B.size*cam.zoom,4);
+  bcEl.style.width=sz+'px'; bcEl.style.height=sz+'px';
+}
+function moveBrushCursor(sx,sy) {
+  const show = ['brush','eraser','pen','line','shape'].includes(tool);
+  bcEl.style.display = show ? 'block' : 'none';
+  const sz = tool==='eraser' ? ER.size*cam.zoom : Math.max(B.size*cam.zoom,4);
+  bcEl.style.left=sx+'px'; bcEl.style.top=sy+'px';
+  bcEl.style.width=sz+'px'; bcEl.style.height=sz+'px';
+  if (tool==='eraser') {
+    bcEl.style.borderColor = 'rgba(255,68,102,0.6)';
+    bcEl.style.boxShadow   = '0 0 6px rgba(255,68,102,0.25)';
+  } else {
+    bcEl.style.borderColor = lightMode ? 'rgba(0,0,0,0.30)' : 'rgba(255,255,255,0.55)';
+    bcEl.style.boxShadow   = lightMode ? 'none' : `0 0 8px rgba(${hexToRgb(B.color)},0.4)`;
+  }
+}
+
+// ── POINTER EVENTS ────────────────────────────────────────────────────────────
+canvas.addEventListener('pointerdown',  onDown, {passive:false});
+canvas.addEventListener('pointermove',  onMove, {passive:true});
+canvas.addEventListener('pointerup',    onUp);
+canvas.addEventListener('pointercancel',onUp);
+canvas.addEventListener('dblclick',     onDbl);
+canvas.addEventListener('wheel',        onWheel, {passive:false});
+window.addEventListener('keydown',      onKey);
+window.addEventListener('keyup',        onKeyUp_);
+
+function kvSpt(e) { const r=canvas.getBoundingClientRect(); return{x:e.clientX-r.left,y:e.clientY-r.top}; }
+
+function kvOnDown(e) {
+  e.preventDefault();
+  const s = kvSpt(e);
+
+  if (e.button===1 || (e.button===0&&spaceDown) || tool==='select') {
+    isPanning=true; panOX=e.clientX; panOY=e.clientY;
+    camSnap={x:cam.panX,y:cam.panY};
+    canvas.classList.add('panning'); return;
+  }
+  if (e.button!==0) return;
+
+  if (tool==='text') {
+    if (!(e.button===1||(e.button===0&&spaceDown))) { handleTextClick(s.x,s.y); return; }
+  }
+  if (tool==='select'&&!spaceDown&&e.button===0) { selectNear(s.x,s.y); }
+  if (tool==='eyedrop') { pickFromCanvas(s); return; }
+
+  if (tool==='line') {
+    const w=kvS2W(s.x,s.y);
+    if (!lineStart) { lineStart=w; }
+    else {
+      snap();
+      const pts=[{x:lineStart.x,y:lineStart.y,w:B.size},{x:w.x,y:w.y,w:B.size*0.35}];
+      const segs=kvFitBeziers(pts);
+      if (segs.length) {
+        const stroke={id:KVM.nextId++,layer:KVM.activeLayer,color:B.color,blend:B.blend,
+          opacity:B.opacity,size:B.size,taper:0.82,glow:B.glow,beziers:segs,spinePoints:pts};
+        KVM.push(stroke);
+        kvRenderToCtx(kvEraseCtx, stroke, false);
+      }
+      lineStart=null; kvBuildLayerList(); kvScheduleDraw();
+    }
+    return;
+  }
+
+  if (tool==='shape') {
+    shapeStart = kvS2W(s.x,s.y);
+    isDrawing=true;
+    canvas.setPointerCapture(e.pointerId);
+    return;
+  }
+
+  if (tool==='pen') {
+    const w=kvS2W(s.x,s.y);
+    penAnchors.push({x:w.x,y:w.y,w:B.size});
+    addPenDot(s.x,s.y); kvScheduleDraw(); return;
+  }
+
+  if (tool==='eraser') {
+    isDrawing=true; liveErasePts=[];
+    const w=kvS2W(s.x,s.y);
+    liveErasePts.push({x:w.x,y:w.y});
+    canvas.setPointerCapture(e.pointerId);
+    document.getElementById('hud').style.display='block'; return;
+  }
+
+  if (tool==='brush') {
+    isDrawing=true; rawPts=[]; livePts=[];
+    const w=kvS2W(s.x,s.y);
+    ema.reset(s.x,s.y); vel.reset(s.x,s.y);
+    rawPts.push({x:w.x,y:w.y,w:vel.width(B.size,B.taper)});
+    livePts=rawPts;
+    canvas.setPointerCapture(e.pointerId);
+    document.getElementById('hud').style.display='block';
+    kvScheduleDraw();
+  }
+}
+
+function kvOnMove(e) {
+  const s=kvSpt(e);
+  const w=kvS2W(s.x,s.y);
+  mw=w; moveBrushCursor(s.x,s.y);
+
+  const pp=W2P(w.x,w.y);
+  document.getElementById('cx').textContent = pp.x.toFixed(2);
+  document.getElementById('cy').textContent = pp.y.toFixed(2);
+
+  if (isPanning) {
+    cam.panX=camSnap.x+(e.clientX-panOX);
+    cam.panY=camSnap.y+(e.clientY-panOY);
+    updateBrushCursor(); kvRebuildEraseCanvas(); kvScheduleDraw(); return;
+  }
+
+  if (tool==='shape' && isDrawing) { kvScheduleDraw(); return; }
+
+  if (tool==='eraser' && isDrawing) {
+    liveErasePts.push({x:w.x,y:w.y});
+    if (!ER.strokeMode) {
+      kvEraseCtx.save();
+      kvEraseCtx.globalCompositeOperation='destination-out';
+      paintErasePath(kvEraseCtx,[{x:w.x,y:w.y}],ER.size,ER.hardness);
+      kvEraseCtx.restore();
+    }
+    kvScheduleDraw(); return;
+  }
+
+  if (tool==='line' && lineStart) { kvScheduleDraw(); return; }
+  if (!isDrawing) return;
+
+  const stab=ema.step(s.x,s.y,B.alpha);
+  const sw=kvS2W(stab.x,stab.y);
+  vel.update(s.x,s.y);
+  rawPts.push({x:sw.x,y:sw.y,w:vel.width(B.size,B.taper)});
+  livePts=rawPts;
+  kvScheduleDraw();
+}
+
+function kvOnUp(e) {
+  document.getElementById('hud').style.display='none';
+  if (isPanning) { isPanning=false; updateCursor(); return; }
+
+  if (tool==='shape' && isDrawing) {
+    isDrawing=false;
+    const w = mw; // use last known world position (safe on iOS pointerup)
+    if (shapeStart) {
+      snap();
+      const shape = {
+        id:KVM.nextId++, type:'shape', layer:KVM.activeLayer,
+        shapeType: SH.type,
+        x: Math.min(shapeStart.x,w.x), y: Math.min(shapeStart.y,w.y),
+        w: Math.abs(w.x-shapeStart.x), h: Math.abs(w.y-shapeStart.y),
+        fillColor: SH.fillNone ? null : SH.fillColor,
+        strokeColor: SH.strokeNone ? null : SH.strokeColor,
+        strokeWidth: SH.strokeWidth,
+        opacity: SH.opacity,
+        beziers:[], // needed for erase compat
+      };
+      if (shape.w > 2 && shape.h > 2) {
+        KVM.push(shape);
+        kvBuildLayerList();
+      }
+    }
+    shapeStart=null; kvScheduleDraw(); return;
+  }
+
+  if (tool==='eraser' && isDrawing) {
+    isDrawing=false;
+    if (ER.strokeMode) {
+      snap();
+      eraseByPath(liveErasePts);
+      kvBuildLayerList(); kvRebuildEraseCanvas();
+    } else {
+      snap();
+      KVM.push({
+        id:KVM.nextId++, layer:'__erase__',
+        regions:[{pts:liveErasePts.map(p=>({...p})),size:ER.size,hardness:ER.hardness}],
+        beziers:[]
+      });
+    }
+    liveErasePts=[]; kvScheduleDraw(); return;
+  }
+
+  if (!isDrawing) return;
+  isDrawing=false;
+  if (rawPts.length<2) { rawPts=[];livePts=[];kvScheduleDraw();return; }
+
+  snap();
+  const beziers=kvFitBeziers(rawPts);
+  if (beziers.length) {
+    const s={id:KVM.nextId++,layer:KVM.activeLayer,color:B.color,blend:B.blend,
+      opacity:B.opacity,size:B.size,taper:B.taper,glow:B.glow,beziers,spinePoints:rawPts.map(p=>({...p}))};
+    KVM.push(s);
+    kvBuildLayerList();
+    kvRenderToCtx(kvEraseCtx, s, false);
+  }
+  rawPts=[];livePts=[];
+  kvScheduleDraw();
+}
+
+function onDbl(e) {
+  if (tool==='pen' && penAnchors.length>1) commitPen();
+}
+
+function commitPen() {
+  snap();
+  const beziers=kvFitBeziers(penAnchors);
+  if (beziers.length) {
+    const s={id:KVM.nextId++,layer:KVM.activeLayer,color:B.color,blend:B.blend,
+      opacity:B.opacity,size:B.size,taper:B.taper,glow:B.glow,beziers,spinePoints:penAnchors.map(p=>({...p}))};
+    KVM.push(s);
+    kvRenderToCtx(kvEraseCtx, s, false);
+    kvBuildLayerList();
+  }
+  clearPenDots(); penAnchors=[];
+  kvScheduleDraw();
+}
+
+function addPenDot(sx,sy) {
+  const d=document.createElement('div');
+  d.className='pen-anchor'; d.style.left=sx+'px'; d.style.top=sy+'px';
+  wrap.appendChild(d); penDots.push(d);
+}
+function clearPenDots() { penDots.forEach(d=>d.remove()); penDots=[]; }
+
+function eraseByPath(path) {
+  if (!path.length) return;
+  let mnX=Infinity,mnY=Infinity,mxX=-Infinity,mxY=-Infinity;
+  for (const p of path) { mnX=Math.min(mnX,p.x);mnY=Math.min(mnY,p.y);mxX=Math.max(mxX,p.x);mxY=Math.max(mxY,p.y); }
+  const pad=(ER.size/cam.zoom)*1.5;
+  KVM.strokes=KVM.strokes.filter(s=>{
+    if (s.layer==='__erase__') return true;
+    if (s.type==='shape') {
+      const cx=s.x+s.w/2, cy=s.y+s.h/2;
+      return !(cx>=mnX-pad&&cx<=mxX+pad&&cy>=mnY-pad&&cy<=mxY+pad);
+    }
+    for (const b of s.beziers) {
+      for (const t of [0,0.2,0.4,0.6,0.8,1]) {
+        const p=kvEvalBez(b,t);
+        if(p.x>=mnX-pad&&p.x<=mxX+pad&&p.y>=mnY-pad&&p.y<=mxY+pad)return false;
+      }
+    }
+    return true;
+  });
+  kvUpdateProps();
+}
+
+// ── WHEEL / ZOOM ──────────────────────────────────────────────────────────────
+function onWheel(e) {
+  e.preventDefault();
+  const f = e.deltaY<0?1.11:1/1.11;
+  const r = canvas.getBoundingClientRect();
+  const mx=e.clientX-r.left, my=e.clientY-r.top;
+  const nz=Math.max(cam.minZoom,Math.min(cam.maxZoom,cam.zoom*f));
+  cam.panX=mx-(mx-cam.panX)*(nz/cam.zoom);
+  cam.panY=my-(my-cam.panY)*(nz/cam.zoom);
+  cam.zoom=nz;
+  document.getElementById('p-zoom').textContent=cam.zoom.toFixed(2)+'×';
+  updateBrushCursor(); kvRebuildEraseCanvas(); kvScheduleDraw();
+}
+
+function zoomFit() {
+  const pad=60;
+  const zx=(CW()-pad*2)/PAGE.w, zy=(CH()-pad*2)/PAGE.h;
+  cam.zoom=Math.min(zx,zy,cam.maxZoom);
+  cam.panX=CW()/2-(PAGE.w/2)*cam.zoom;
+  cam.panY=CH()/2+(PAGE.h/2)*cam.zoom;
+  document.getElementById('p-zoom').textContent=cam.zoom.toFixed(2)+'×';
+  kvRebuildEraseCanvas(); kvScheduleDraw();
+}
+
+function pickFromCanvas(s) {
+  const px=Math.round(s.x*DPR), py=Math.round(s.y*DPR);
+  const d=ctx.getImageData(px,py,1,1).data;
+  if(d[3]<20) return;
+  const hex='#'+[d[0],d[1],d[2]].map(v=>v.toString(16).padStart(2,'0')).join('');
+  pickColor(hex); showToast('Picked '+hex); setTool('brush');
+}
+
+
+// ── SELECTION ──────────────────────────────────────────────────────────────────
+function selectNear(sx,sy) {
+  for (let i=KVM.strokes.length-1;i>=0;i--) {
+    const s=KVM.strokes[i]; if(s.layer==='__erase__') continue;
+    if(s.type==='shape'){const a=kvW2S(s.x,s.y+s.h),b=kvW2S(s.x+s.w,s.y);
+      if(sx>=Math.min(a.x,b.x)-6&&sx<=Math.max(a.x,b.x)+6&&sy>=Math.min(a.y,b.y)-6&&sy<=Math.max(a.y,b.y)+6){selectedId=s.id;kvScheduleDraw();return;}}
+    if(s.type==='text'){const sp=kvW2S(s.x,s.y);if(Math.hypot(sx-sp.x,sy-sp.y)<30){selectedId=s.id;kvScheduleDraw();return;}}
+    if(s.beziers&&s.beziers.length){for(const b of s.beziers)for(const t of[0,.25,.5,.75,1]){const p=kvEvalBez(b,t),sp=kvW2S(p.x,p.y);if(Math.hypot(sx-sp.x,sy-sp.y)<12){selectedId=s.id;kvScheduleDraw();return;}}}
+  }
+  selectedId=null; kvScheduleDraw();
+}
+function deleteSelected() {
+  if(!selectedId){showToast('Nothing selected');return;}
+  snap(); KVM.strokes=KVM.strokes.filter(s=>s.id!==selectedId); selectedId=null;
+  kvRebuildEraseCanvas();kvUpdateProps();kvBuildLayerList();kvScheduleDraw();showToast('Deleted');
+}
+function drawSelectionOverlay() {
+  if(!selectedId)return; const s=KVM.strokes.find(x=>x.id===selectedId); if(!s)return;
+  ctx.save();ctx.strokeStyle='rgba(255,60,172,0.75)';ctx.lineWidth=1.5;ctx.setLineDash([5,3]);
+  if(s.type==='shape'){const a=kvW2S(s.x,s.y+s.h),b=kvW2S(s.x+s.w,s.y);ctx.strokeRect(Math.min(a.x,b.x)-4,Math.min(a.y,b.y)-4,Math.abs(b.x-a.x)+8,Math.abs(b.y-a.y)+8);}
+  else if(s.type==='text'){const sp=kvW2S(s.x,s.y);ctx.strokeRect(sp.x-4,sp.y-20,60,24);}
+  else if(s.beziers&&s.beziers.length){let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;
+    for(const b of s.beziers)for(const t of[0,.25,.5,.75,1]){const p=kvEvalBez(b,t),sp=kvW2S(p.x,p.y);x0=Math.min(x0,sp.x);x1=Math.max(x1,sp.x);y0=Math.min(y0,sp.y);y1=Math.max(y1,sp.y);}
+    ctx.strokeRect(x0-4,y0-4,x1-x0+8,y1-y0+8);}
+  ctx.setLineDash([]);ctx.restore();
+}
+function handleTextClick(sx,sy) {
+  const w=kvS2W(sx,sy),snW=snapPt(w.x,w.y),txt=prompt('Text:','Label');if(!txt)return;
+  snap();const s={id:KVM.nextId++,type:'text',layer:KVM.activeLayer,color:B.color,
+    blend:'source-over',opacity:B.opacity,size:B.size,text:txt,x:snW.x,y:snW.y,beziers:[],spinePoints:[]};
+  KVM.push(s);kvRenderToCtx(kvEraseCtx,s,false);kvBuildLayerList();kvScheduleDraw();
+}
+
+
+
+// ── KANVAS RENDER ─────────────────────────────────────────────────────────────
+function kvRender() {
+  if (!kanvasMode) return;
+  const W = canvas.width, H = canvas.height;
+
+  // Resize erase canvas if needed
+  if (!kvEraseC || kvEraseC.width !== W || kvEraseC.height !== H) {
+    kvInitEraseCanvas();
+    kvRebuildEraseCanvas();
+  }
+
+  // 1. Redraw KAD geometry (dimmed) — call KAD's own render
+  render();
+
+  // 2. White artboard overlay
+  const o = kvGetPageOrigin();
+  const pW = KV_PAGE.w * cam.zoom;
+  const pH = KV_PAGE.h * cam.zoom;
+
+  ctx.save();
+  // Drop shadow
+  ctx.shadowColor = 'rgba(0,0,0,0.45)';
+  ctx.shadowBlur  = 24; ctx.shadowOffsetX = 3; ctx.shadowOffsetY = 5;
+  ctx.fillStyle   = '#ffffff';
+  ctx.fillRect(o.x, o.y, pW, pH);
+  ctx.restore();
+
+  // Page border
+  ctx.save();
+  ctx.strokeStyle = 'rgba(0,212,200,0.35)'; ctx.lineWidth = 1.5;
+  ctx.setLineDash([8,4]); ctx.strokeRect(o.x, o.y, pW, pH); ctx.setLineDash([]);
+  // Corner ticks
+  const tk = 10;
+  ctx.strokeStyle = 'rgba(0,212,200,0.7)'; ctx.lineWidth = 1.5;
+  [[o.x,o.y,1,1],[o.x+pW,o.y,-1,1],[o.x,o.y+pH,1,-1],[o.x+pW,o.y+pH,-1,-1]].forEach(([x,y,dx,dy])=>{
+    ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+dx*tk,y);
+    ctx.moveTo(x,y); ctx.lineTo(x,y+dy*tk); ctx.stroke();
+  });
+  ctx.restore();
+
+  // 3. Clip to page and draw annotations
+  ctx.save();
+  ctx.beginPath(); ctx.rect(o.x, o.y, pW, pH); ctx.clip();
+
+  // Draw erase-composited strokes
+  if (kvEraseC) ctx.drawImage(kvEraseC, 0, 0, W, H);
+  kvDrawLiveStroke();
+
+  ctx.restore();
+
+  // 4. Page label
+  ctx.save();
+  ctx.font = `600 9px var(--font-mono,'Fira Code',monospace)`;
+  ctx.fillStyle = 'rgba(0,212,200,0.6)';
+  ctx.fillText(`${KV_PAGE.label} · ${KV_PAGE.dim}`, o.x + 4, o.y - 6);
+  ctx.restore();
+}
+
+function kvScheduleDraw() {
+  if (!kvRafId) kvRafId = requestAnimationFrame(()=>{ kvRafId=null; kvRender(); });
+}
+
+function kvUpdateProps() {
+  const el = document.getElementById('kv-stroke-count');
+  if (el) el.textContent = KVM.strokes.filter(s=>s.layer!=='__erase__').length;
+}
+
+// ── KANVAS MODE TOGGLE ────────────────────────────────────────────────────────
+function toggleKanvas() {
+  kanvasMode = !kanvasMode;
+  document.body.classList.toggle('kanvas-mode', kanvasMode);
+
+  const btn = document.getElementById('btn-kanvas');
+  if (btn) btn.title = kanvasMode ? 'Exit KANVAS paperspace' : 'Open KANVAS paperspace';
+
+  if (kanvasMode) {
+    kvInitEraseCanvas();
+    kvRebuildEraseCanvas();
+    kvBuildLayerList();
+    kvBuildSwatches();
+    // Attach KANVAS pointer events
+    canvas.addEventListener('pointerdown',  kvOnDown, {passive:false});
+    canvas.addEventListener('pointermove',  kvOnMove, {passive:true});
+    canvas.addEventListener('pointerup',    kvOnUp);
+    canvas.addEventListener('pointercancel',kvOnUp);
+    kvScheduleDraw();
+    showToast('KANVAS — paperspace · Brush, Pen, Text, Shape · Ctrl+W to exit');
+  } else {
+    canvas.removeEventListener('pointerdown',  kvOnDown);
+    canvas.removeEventListener('pointermove',  kvOnMove);
+    canvas.removeEventListener('pointerup',    kvOnUp);
+    canvas.removeEventListener('pointercancel',kvOnUp);
+    render();
+    showToast('Model space');
+  }
+}
+
+// ── KANVAS TOOL SETTER ────────────────────────────────────────────────────────
+function kvSetTool(t) {
+  kvTool = t;
+  document.querySelectorAll('.kv-tbtn').forEach(b => b.classList.remove('act'));
+  const btn = document.getElementById('kv-tb-' + t);
+  if (btn) btn.classList.add('act');
+  const hints = {
+    brush: 'BRUSH · Draw freehand annotation',
+    pen:   'PEN · Click to place anchors · Double-click to commit',
+    text:  'TEXT · Click to place text label',
+    shape: 'SHAPE · Drag to draw rect/oval',
+    erase: 'ERASE · Paint to erase annotation',
+    line:  'LINE · Click start and end point',
+  };
+  showToast(hints[t] || t.toUpperCase());
+  kvScheduleDraw();
+}
+
+// ── KANVAS LAYER LIST ─────────────────────────────────────────────────────────
+function kvBuildLayerList() {
+  const el = document.getElementById('kv-layers');
+  if (!el) return;
+  el.innerHTML = KVM.layers.map(l => `
+    <div class="kv-layer-item ${l.name===KVM.activeLayer?'active':''}"
+         onclick="KVM.activeLayer='${l.name}';kvBuildLayerList();">
+      <div class="kv-layer-dot" style="background:${l.color}"></div>
+      ${l.name}
+    </div>`).join('');
+}
+
+// ── SWATCHES ──────────────────────────────────────────────────────────────────
+const KV_SWATCHES = ['#ff3cac','#00d4c8','#4d96ff','#00ffa3','#ffb347',
+  '#cc88ff','#ff6b6b','#ffffff','#c0c0c0','#707070','#303030','#000000'];
+
+function kvBuildSwatches() {
+  const el = document.getElementById('kv-swatches');
+  if (!el) return;
+  el.innerHTML = KV_SWATCHES.map(c =>
+    `<div class="kv-swatch" style="background:${c}" onclick="kvSetColor('${c}')"></div>`
+  ).join('');
+}
+
+function kvSetColor(hex) {
+  B.color = hex;
+  const chip = document.getElementById('kv-color-chip');
+  if (chip) chip.style.background = hex;
+}
+
+// ── KANVAS SYNC BRUSH ─────────────────────────────────────────────────────────
+function kvSyncBrush() {
+  const size    = document.getElementById('kv-sl-size');
+  const opacity = document.getElementById('kv-sl-opacity');
+  const stab    = document.getElementById('kv-sl-stab');
+  if (size)    { B.size    = +size.value;    document.getElementById('kv-v-size').textContent    = size.value + 'px'; }
+  if (opacity) { B.opacity = +opacity.value/100; document.getElementById('kv-v-opacity').textContent = opacity.value + '%'; }
+  if (stab)    { B.alpha   = +stab.value/100;    document.getElementById('kv-v-stab').textContent    = (+stab.value/100).toFixed(2); }
+}
+
+// ── KANVAS EXPORT ─────────────────────────────────────────────────────────────
+function kvExportVAD() {
+  // Serialize KVM + KV_PAGE + GeoMemory as locked reference
+  const key = Object.keys(KV_PAGE_SIZES).find(k=>KV_PAGE_SIZES[k]===KV_PAGE)||'a3p';
+  const geoRef = {
+    type: 'kad-reference', locked: true,
+    objects: GeoMemory.objects,
+    units:   unitMode,
+    layer:   'KAD Geometry',
+    color:   '#2a4060',
+    visible: true,
+  };
+  const vad = {
+    version:     '1.0',
+    source:      'KAD KANVAS',
+    layers:      KVM.layers,
+    activeLayer: KVM.activeLayer,
+    nextId:      KVM.nextId,
+    strokes:     KVM.strokes,
+    page:        key,
+    kadRef:      geoRef,
+  };
+  const blob = new Blob([JSON.stringify(vad, null, 2)], {type:'application/json'});
+  const a    = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(blob), download: 'drawing.vad'
+  });
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  showToast('Saved drawing.vad — open in VAD to continue annotating');
+}
+
+function kvExportSVG() {
+  const svg = kvBuildSVG();
+  const blob = new Blob([svg], {type:'image/svg+xml'});
+  const a = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(blob), download: 'drawing.svg'
+  });
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  showToast('Exported drawing.svg');
+}
+
+function kvPrintPDF() {
+  // Build a print-ready SVG and open browser print dialog
+  const svg = kvBuildSVG();
+  const frame = document.getElementById('kv-print-frame');
+  if (!frame) { window.print(); return; }
+  frame.innerHTML = svg;
+  frame.style.display = 'block';
+  setTimeout(()=>{ window.print(); frame.style.display='none'; }, 200);
+}
+
+// ── KANVAS SVG ────────────────────────────────────────────────────────────────
+function kvBuildSVG() {
+  const f=n=>n.toFixed(4);
+  const vis=KVM.visibleStrokes().filter(s=>s.layer!=='__erase__');
+
+  // KREATE mode: compute bounds from content
+  let W=KV_PAGE.w, H=KV_PAGE.h;
+  if (false && vis.length) {
+    let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;
+    for (const s of vis) {
+      if (s.beziers) for (const b of s.beziers) for (const t of [0,.25,.5,.75,1]) {
+        const p=kvEvalBez(b,t); x0=Math.min(x0,p.x);x1=Math.max(x1,p.x);y0=Math.min(y0,p.y);y1=Math.max(y1,p.y);
+      }
+      if (s.type==='shape'||s.type==='text') {
+        x0=Math.min(x0,s.x);x1=Math.max(x1,s.x+(s.w||0));y0=Math.min(y0,s.y);y1=Math.max(y1,s.y+(s.h||0));
+      }
+    }
+    const pad=10;
+    W=isFinite(x1)?x1-x0+pad*2:KV_PAGE.w; H=isFinite(y1)?y1-y0+pad*2:KV_PAGE.h;
+  }
+  const fy=y=>H-y;
+
+  const out=[];
+  out.push(`<?xml version="1.0" encoding="UTF-8" standalone="no"?>`);
+  out.push(`<!-- .VAD v1.0 · ${KV_PAGE.label} · ${KV_PAGE.dim} -->`);
+  out.push(`<svg xmlns="http://www.w3.org/2000/svg" width="${f(W)}mm" height="${f(H)}mm" viewBox="0 0 ${f(W)} ${f(H)}">`);
+  out.push(`  <rect width="${f(W)}" height="${f(H)}" fill="white"/>`);
+
+  const byLayer={};
+  for(const s of vis) {
+    if(!byLayer[s.layer])byLayer[s.layer]=[];
+    byLayer[s.layer].push(s);
+  }
+  for(const [layer,strokes] of Object.entries(byLayer)) {
+    const safe=layer.replace(/[^a-zA-Z0-9_-]/g,'-');
+    out.push(`  <g id="layer-${safe}">`);
+    for(const s of strokes) {
+      if(s.type==='shape') {
+        // SVG shapes
+        const fill=s.fillColor||'none';
+        const stroke=s.strokeColor||'none';
+        const sw=f(s.strokeWidth);
+        const op=s.opacity.toFixed(3);
+        const sy=fy(s.y), sh=s.h;
+        // In SVG Y is flipped
+        const svgY=fy(s.y+s.h);
+        if(s.shapeType==='rect') {
+          out.push(`    <rect x="${f(s.x)}" y="${f(svgY)}" width="${f(s.w)}" height="${f(sh)}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" opacity="${op}"/>`);
+        } else if(s.shapeType==='ellipse') {
+          out.push(`    <ellipse cx="${f(s.x+s.w/2)}" cy="${f(svgY+sh/2)}" rx="${f(s.w/2)}" ry="${f(sh/2)}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" opacity="${op}"/>`);
+        } else {
+          const pts=`${f(s.x+s.w/2)},${f(svgY)} ${f(s.x+s.w)},${f(svgY+sh)} ${f(s.x)},${f(svgY+sh)}`;
+          out.push(`    <polygon points="${pts}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" opacity="${op}"/>`);
+        }
+        continue;
+      }
+      if(s.type==='text'){out.push(`    <text x="${f(s.x)}" y="${f(fy(s.y))}" font-family="Syne,sans-serif" font-size="${f(s.size*0.75)}" fill="${s.color}" opacity="${s.opacity.toFixed(3)}">${s.text}</text>`);continue;}
+      if(!s.beziers||!s.beziers.length)continue;
+      const d=s.beziers.map((b,i)=>{
+        const m=i===0?`M ${f(b.x0)},${f(fy(b.y0))} `:'';
+        return`${m}C ${f(b.cx1)},${f(fy(b.cy1))} ${f(b.cx2)},${f(fy(b.cy2))} ${f(b.x3)},${f(fy(b.y3))}`;
+      }).join(' ');
+      const avgW=f(s.size*(1-s.taper*0.5));
+      const op=s.opacity.toFixed(3);
+      const blend=s.blend==='source-over'?'normal':s.blend;
+      out.push(`    <path d="${d}" stroke="${s.color}" stroke-width="${avgW}" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="${op}"${blend!=='normal'?` style="mix-blend-mode:${blend}"`:''}/>`);
+    }
+    out.push(`  </g>`);
+  }
+  out.push(`</svg>`);
+  return out.join('\n');
+}
+
+// ── KV PAGE SIZE ─────────────────────────────────────────────────────────────
+function kvSetPageSize(key) {
+  KV_PAGE = KV_PAGE_SIZES[key] || KV_PAGE_SIZES.a3p;
+  kvInitEraseCanvas();
+  kvRebuildEraseCanvas();
+  kvScheduleDraw();
+  showToast('Page: ' + KV_PAGE.label);
+}
+
+// ── KANVAS KEYBOARD (only in kanvasMode) ─────────────────────────────────────
+// Hooked into KAD's onKeyDown at the top
+function kvHandleKey(e) {
+  if (!kanvasMode) return false;
+  if (e.target.matches('input,select,textarea')) return false;
+  if ((e.ctrlKey||e.metaKey) && e.key==='w') { e.preventDefault(); toggleKanvas(); return true; }
+  const toolKeys = {b:'brush',p:'pen',t:'text',s:'shape',e:'erase',l:'line'};
+  if (!e.ctrlKey && toolKeys[e.key]) { kvSetTool(toolKeys[e.key]); return true; }
+  return false;
+}
+
 </script>
+<div id="kv-print-frame"></div>
 </body>
 </html>
